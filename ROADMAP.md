@@ -110,6 +110,21 @@ CLI + TUI for solo AI engineers inspecting bare-metal AI boxes: host, GPUs (NVID
 
 ---
 
+## Phase 6.1 — Dashboard richness
+
+**Goal:** Default `./bareai` feels like a live AIOps dashboard (hybrid layout + trends).
+
+- [x] Overview dashboard: host/GPU/LLM/correlation panels with focus navigation
+- [x] Unicode bars + in-memory sparklines (load, RAM, GPU util/VRAM)
+- [x] Keyboard dive from Overview into GPU / LLM / Docker tabs with selection sync
+- [x] Fuzzy search (`/`) on GPU, LLM, and Docker lists (PID, provider, endpoint, …)
+- [x] Colored health/state, richer list titles and detail panes
+- [x] Docker tab: toggle all vs running containers (`a`)
+
+**Exit:** `./bareai` shows correlated infrastructure at a glance with trends; deep tabs searchable over SSH.
+
+---
+
 ## Phase 7 — Cross-platform hardening
 
 **Goal:** First-class Mac / Windows / Linux behavior.

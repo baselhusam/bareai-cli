@@ -7,12 +7,43 @@ import (
 	"github.com/baselhusam/bareai-cli/internal/snapshot"
 )
 
-func dockerListTitle(c snapshot.DockerContainer) string {
-	gpu := "no"
+func dockerListTitle(c snapshot.DockerContainer, s styles) string {
+	gpu := s.muted.Render("no-gpu")
 	if c.GPURequested {
-		gpu = "yes"
+		gpu = s.ok.Render("gpu")
 	}
-	return fmt.Sprintf("%-16s  %-10s  gpu=%s", truncate(c.Name, 16), truncate(c.State, 10), gpu)
+	pid := ""
+	if c.PID > 0 {
+		pid = fmt.Sprintf(" pid=%d", c.PID)
+	}
+	stateStyle := s.value
+	switch strings.ToLower(c.State) {
+	case "running":
+		stateStyle = s.ok
+	case "exited", "dead":
+		stateStyle = s.fail
+	case "paused":
+		stateStyle = s.warn
+	}
+	return fmt.Sprintf("%-16s  %s%s  %s",
+		truncate(c.Name, 16),
+		stateStyle.Render(truncate(c.State, 10)),
+		pid, gpu)
+}
+
+func dockerFilterValue(c snapshot.DockerContainer) string {
+	parts := []string{
+		c.ID,
+		c.Name,
+		c.Image,
+		c.State,
+		c.Status,
+		fmt.Sprintf("%d", c.PID),
+	}
+	for _, p := range c.Ports {
+		parts = append(parts, fmt.Sprintf("%d", p.PublicPort), fmt.Sprintf("%d", p.PrivatePort))
+	}
+	return strings.Join(parts, " ")
 }
 
 func formatDockerPorts(ports []snapshot.DockerPort) string {
@@ -35,20 +66,29 @@ func formatDockerPorts(ports []snapshot.DockerPort) string {
 	return strings.Join(parts, ", ")
 }
 
-func dockerDetailText(c snapshot.DockerContainer) string {
+func dockerDetailText(c snapshot.DockerContainer, s styles) string {
 	var b strings.Builder
 	fmt.Fprintf(&b, "Container: %s\n", c.Name)
 	fmt.Fprintf(&b, "  ID:      %s\n", c.ID)
 	fmt.Fprintf(&b, "  Image:   %s\n", c.Image)
-	fmt.Fprintf(&b, "  State:   %s\n", c.State)
+	state := s.value.Render(c.State)
+	switch strings.ToLower(c.State) {
+	case "running":
+		state = s.ok.Render(c.State)
+	case "exited", "dead":
+		state = s.fail.Render(c.State)
+	case "paused":
+		state = s.warn.Render(c.State)
+	}
+	fmt.Fprintf(&b, "  State:   %s\n", state)
 	fmt.Fprintf(&b, "  Status:  %s\n", c.Status)
 	if c.PID > 0 {
 		fmt.Fprintf(&b, "  PID:     %d\n", c.PID)
 	}
 	fmt.Fprintf(&b, "  Ports:   %s\n", formatDockerPorts(c.Ports))
-	gpu := "no"
+	gpu := s.muted.Render("no")
 	if c.GPURequested {
-		gpu = "yes"
+		gpu = s.ok.Render("yes")
 	}
 	fmt.Fprintf(&b, "  GPU:     %s\n", gpu)
 	if len(c.DeviceRequests) > 0 {
@@ -62,6 +102,15 @@ func dockerDetailText(c snapshot.DockerContainer) string {
 }
 
 func runningContainers(containers []snapshot.DockerContainer) []snapshot.DockerContainer {
+	return dockerContainersForList(containers, false)
+}
+
+func dockerContainersForList(containers []snapshot.DockerContainer, showAll bool) []snapshot.DockerContainer {
+	if showAll {
+		out := make([]snapshot.DockerContainer, len(containers))
+		copy(out, containers)
+		return out
+	}
 	out := make([]snapshot.DockerContainer, 0, len(containers))
 	for _, c := range containers {
 		if strings.EqualFold(c.State, "running") {

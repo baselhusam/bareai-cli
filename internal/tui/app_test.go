@@ -85,8 +85,12 @@ func TestOverviewText(t *testing.T) {
 
 func TestGPUListTitle(t *testing.T) {
 	util := 42.0
-	title := gpuListTitle(snapshot.GPU{Index: 0, Name: "NVIDIA A100", Utilization: &util, MemoryTotal: 40 * 1024 * 1024 * 1024, MemoryUsed: 10 * 1024 * 1024 * 1024})
-	if !strings.Contains(title, "util=42%") {
+	s := newStyles(false)
+	title := gpuListTitle(snapshot.GPU{Index: 0, Name: "NVIDIA A100", Utilization: &util, MemoryTotal: 40 * 1024 * 1024 * 1024, MemoryUsed: 10 * 1024 * 1024 * 1024}, s, 10)
+	if !strings.Contains(title, "42%") {
 		t.Fatalf("unexpected title: %s", title)
+	}
+	if !strings.Contains(title, "█") {
+		t.Fatalf("expected bar in title: %s", title)
 	}
 }

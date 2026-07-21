@@ -135,7 +135,7 @@ func correlationText(rows []snapshot.Correlation, width int) string {
 	return b.String()
 }
 
-func probePanelText(snap *snapshot.Snapshot, llmIndex int, result *snapshot.ProbeResult, probing bool) string {
+func probePanelText(snap *snapshot.Snapshot, llmIndex int, result *snapshot.ProbeResult, probing bool, s styles) string {
 	var b strings.Builder
 	fmt.Fprintln(&b, "Probe")
 
@@ -170,9 +170,9 @@ func probePanelText(snap *snapshot.Snapshot, llmIndex int, result *snapshot.Prob
 		return strings.TrimRight(b.String(), "\n")
 	}
 
-	status := "FAIL"
+	status := s.fail.Render("FAIL")
 	if display.OK {
-		status = "PASS"
+		status = s.ok.Render("PASS")
 	}
 	fmt.Fprintf(&b, "  Result:   %s\n", status)
 	fmt.Fprintf(&b, "  Latency:  %dms\n", display.LatencyMS)

@@ -49,13 +49,19 @@ func (t Tab) String() string {
 }
 
 type listItem struct {
-	title string
-	index int
+	title  string
+	filter string
+	index  int
 }
 
 func (i listItem) Title() string       { return i.title }
 func (i listItem) Description() string { return "" }
-func (i listItem) FilterValue() string { return i.title }
+func (i listItem) FilterValue() string {
+	if i.filter != "" {
+		return i.filter
+	}
+	return i.title
+}
 
 // Model is the root Bubble Tea model.
 type Model struct {
@@ -73,6 +79,7 @@ type Model struct {
 	gen uint64
 
 	snap *snapshot.Snapshot
+	history metricHistory
 
 	gpuList    list.Model
 	llmList    list.Model
@@ -81,13 +88,14 @@ type Model struct {
 	gpuDetail    viewport.Model
 	llmDetail    viewport.Model
 	dockerDetail viewport.Model
-	overviewVP   viewport.Model
 	probeVP      viewport.Model
 
 	probeResult   *snapshot.ProbeResult
 	probeGen      uint64
 	lastProbeIdx  int
 	focusDetail   bool
+	overviewFocus overviewFocus
+	dockerShowAll bool
 
 	spinner spinner.Model
 }
@@ -102,9 +110,9 @@ func newModel(ctx context.Context, opts Options) Model {
 	newList := func() list.Model {
 		l := list.New([]list.Item{}, delegate, listWidth, listHeight)
 		l.SetShowTitle(false)
-		l.SetShowStatusBar(false)
+		l.SetShowStatusBar(true)
 		l.SetShowHelp(false)
-		l.SetFilteringEnabled(false)
+		l.SetFilteringEnabled(true)
 		l.DisableQuitKeybindings()
 		return l
 	}
@@ -113,24 +121,25 @@ func newModel(ctx context.Context, opts Options) Model {
 	s.Spinner = spinner.Dot
 
 	m := Model{
-		opts:         opts,
-		ctx:          ctx,
-		styles:       newStyles(opts.NoColor),
-		tab:          TabOverview,
-		width:        80,
-		height:       24,
-		loading:      true,
-		gen:          1,
-		gpuList:      newList(),
-		llmList:      newList(),
-		dockerList:   newList(),
-		spinner:      s,
-		lastProbeIdx: -1,
-		overviewVP:   viewport.New(78, 18),
-		probeVP:      viewport.New(78, 18),
-		gpuDetail:    viewport.New(38, 18),
-		llmDetail:    viewport.New(38, 18),
-		dockerDetail: viewport.New(38, 18),
+		opts:          opts,
+		ctx:           ctx,
+		styles:        newStyles(opts.NoColor),
+		tab:           TabOverview,
+		width:         80,
+		height:        24,
+		loading:       true,
+		gen:           1,
+		history:       newMetricHistory(defaultHistoryMax),
+		gpuList:       newList(),
+		llmList:       newList(),
+		dockerList:    newList(),
+		spinner:       s,
+		lastProbeIdx:  -1,
+		overviewFocus: overviewFocus{section: sectionHost, row: 0},
+		probeVP:       viewport.New(78, 18),
+		gpuDetail:     viewport.New(38, 18),
+		llmDetail:     viewport.New(38, 18),
+		dockerDetail:  viewport.New(38, 18),
 	}
 	return m
 }
@@ -160,6 +169,12 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.startRefresh()
 			return m, collectSnapshotCmd(m.ctx, m.opts.Timeout, m.gen, true)
 		}
+		if key == "a" && m.tab == TabDocker {
+			m.dockerShowAll = !m.dockerShowAll
+			m.syncLists()
+			m.syncViewports()
+			return m, nil
+		}
 		if key == "p" && (m.tab == TabLLM || m.tab == TabProbe) {
 			idx := m.selectedLLMIndex()
 			if idx >= 0 {
@@ -170,6 +185,14 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				cmds = append(cmds, m.probeCmd(idx, gen))
 			}
 			return m, tea.Batch(cmds...)
+		}
+		if key == "/" && m.tab == TabOverview {
+			m.tab = TabLLM
+			m.focusDetail = false
+			m.syncViewports()
+		}
+		if m.tab == TabOverview && m.handleOverviewKey(key) {
+			return m, nil
 		}
 		if m.handleTabKey(key) {
 			m.syncViewports()
@@ -190,6 +213,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		m.loading = false
 		m.snap = msg.snap
+		m.history.record(msg.snap)
+		m.overviewFocus = m.overviewFocus.clamp(msg.snap)
 		m.syncLists()
 		m.syncViewports()
 		return m, nil
@@ -233,11 +258,9 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		cmds = append(cmds, cmd)
 		m.syncDetailFromSelection()
-	} else if m.tabUsesDetail() {
+	} else if m.tabUsesDetail() && m.tab != TabOverview {
 		var cmd tea.Cmd
 		switch m.tab {
-		case TabOverview:
-			m.overviewVP, cmd = m.overviewVP.Update(msg)
 		case TabGPU:
 			m.gpuDetail, cmd = m.gpuDetail.Update(msg)
 		case TabLLM:
@@ -270,6 +293,75 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	return m, tea.Batch(cmds...)
+}
+
+func (m *Model) handleOverviewKey(key string) bool {
+	switch key {
+	case "up", "k":
+		m.overviewFocus = m.overviewFocus.moveUp(m.snap)
+		return true
+	case "down", "j":
+		m.overviewFocus = m.overviewFocus.moveDown(m.snap)
+		return true
+	case "enter", "l", "right":
+		if target, ok := m.overviewFocus.diveTarget(m.snap); ok {
+			m.jumpToTarget(target)
+		}
+		return true
+	case "2":
+		m.tab = TabGPU
+		m.focusDetail = false
+		if m.overviewFocus.section == sectionGPU && m.snap != nil && len(m.snap.GPUs) > 0 {
+			m.selectListAt(&m.gpuList, m.overviewFocus.row)
+			m.syncDetailFromSelection()
+		}
+		return true
+	case "3":
+		m.tab = TabLLM
+		m.focusDetail = false
+		if m.overviewFocus.section == sectionLLM && m.snap != nil && len(m.snap.LLMs) > 0 {
+			m.selectListAt(&m.llmList, m.overviewFocus.row)
+			m.syncDetailFromSelection()
+		}
+		return true
+	case "4":
+		m.tab = TabDocker
+		m.focusDetail = false
+		if target, ok := m.overviewFocus.diveTarget(m.snap); ok && target.tab == TabDocker {
+			m.jumpToTarget(target)
+		}
+		return true
+	}
+	return false
+}
+
+func (m *Model) jumpToTarget(target diveTarget) {
+	m.tab = target.tab
+	m.focusDetail = false
+	switch target.tab {
+	case TabGPU:
+		m.selectListAt(&m.gpuList, target.index)
+	case TabLLM:
+		m.selectListAt(&m.llmList, target.index)
+	case TabDocker:
+		m.selectListAt(&m.dockerList, target.index)
+	}
+	m.syncDetailFromSelection()
+}
+
+func (m *Model) selectListAt(l *list.Model, index int) {
+	if index < 0 {
+		return
+	}
+	for i, item := range l.Items() {
+		if li, ok := item.(listItem); ok && li.index == index {
+			l.Select(i)
+			return
+		}
+	}
+	if index < len(l.Items()) {
+		l.Select(index)
+	}
 }
 
 func (m *Model) handleTabKey(key string) bool {
@@ -365,12 +457,10 @@ func (m *Model) resizeLists() {
 
 func (m *Model) syncViewports() {
 	h := m.contentHeight()
-	if m.tab == TabOverview || m.tab == TabProbe {
-		m.overviewVP.Width = m.width - 2
-		m.overviewVP.Height = h
+	if m.tab == TabProbe {
 		m.probeVP.Width = m.width - 2
 		m.probeVP.Height = h
-	} else {
+	} else if m.tabUsesList() {
 		dw := m.detailWidth()
 		m.gpuDetail.Width = dw
 		m.gpuDetail.Height = h
@@ -381,8 +471,7 @@ func (m *Model) syncViewports() {
 	}
 
 	if m.snap != nil {
-		m.overviewVP.SetContent(overviewText(m.snap, m.width))
-		m.probeVP.SetContent(probePanelText(m.snap, m.selectedLLMIndex(), m.probeResult, m.probing))
+		m.probeVP.SetContent(probePanelText(m.snap, m.selectedLLMIndex(), m.probeResult, m.probing, m.styles))
 	}
 	m.syncDetailFromSelection()
 }
@@ -392,27 +481,41 @@ func (m *Model) syncLists() {
 		return
 	}
 
+	barW := barWidthForTerminal(m.width)
+
 	gpuItems := make([]list.Item, 0, len(m.snap.GPUs))
 	for i, gpu := range m.snap.GPUs {
-		gpuItems = append(gpuItems, listItem{title: gpuListTitle(gpu), index: i})
+		gpuItems = append(gpuItems, listItem{
+			title:  gpuListTitle(gpu, m.styles, barW),
+			filter: gpuFilterValue(gpu),
+			index:  i,
+		})
 	}
 	m.gpuList.SetItems(gpuItems)
 	clampListIndex(&m.gpuList, len(gpuItems))
 
 	llmItems := make([]list.Item, 0, len(m.snap.LLMs))
 	for i, llm := range m.snap.LLMs {
-		llmItems = append(llmItems, listItem{title: llmListTitle(llm), index: i})
+		llmItems = append(llmItems, listItem{
+			title:  llmListTitle(llm, m.styles),
+			filter: llmFilterValue(llm),
+			index:  i,
+		})
 	}
 	m.llmList.SetItems(llmItems)
 	clampListIndex(&m.llmList, len(llmItems))
 
 	var containers []snapshot.DockerContainer
 	if m.snap.Docker != nil {
-		containers = runningContainers(m.snap.Docker.Containers)
+		containers = dockerContainersForList(m.snap.Docker.Containers, m.dockerShowAll)
 	}
 	dockerItems := make([]list.Item, 0, len(containers))
 	for i, c := range containers {
-		dockerItems = append(dockerItems, listItem{title: dockerListTitle(c), index: i})
+		dockerItems = append(dockerItems, listItem{
+			title:  dockerListTitle(c, m.styles),
+			filter: dockerFilterValue(c),
+			index:  i,
+		})
 	}
 	m.dockerList.SetItems(dockerItems)
 	clampListIndex(&m.dockerList, len(dockerItems))
@@ -433,15 +536,15 @@ func (m *Model) syncDetailFromSelection() {
 		return
 	}
 	if idx, ok := m.selectedGPUIndex(); ok {
-		m.gpuDetail.SetContent(gpuDetailText(m.snap.GPUs[idx]))
+		m.gpuDetail.SetContent(gpuDetailText(m.snap.GPUs[idx], m.styles))
 	}
 	if idx, ok := m.selectedLLMIndexOK(); ok {
-		m.llmDetail.SetContent(llmDetailText(m.snap.LLMs[idx]))
+		m.llmDetail.SetContent(llmDetailText(m.snap.LLMs[idx], m.styles))
 	}
 	if idx, ok := m.selectedDockerIndex(); ok && m.snap.Docker != nil {
-		containers := runningContainers(m.snap.Docker.Containers)
+		containers := dockerContainersForList(m.snap.Docker.Containers, m.dockerShowAll)
 		if idx < len(containers) {
-			m.dockerDetail.SetContent(dockerDetailText(containers[idx]))
+			m.dockerDetail.SetContent(dockerDetailText(containers[idx], m.styles))
 		}
 	}
 }
@@ -478,7 +581,7 @@ func (m *Model) selectedDockerIndex() (int, bool) {
 	if !ok || m.snap == nil || m.snap.Docker == nil {
 		return 0, false
 	}
-	containers := runningContainers(m.snap.Docker.Containers)
+	containers := dockerContainersForList(m.snap.Docker.Containers, m.dockerShowAll)
 	if item.index >= len(containers) {
 		return 0, false
 	}
@@ -519,9 +622,18 @@ func (m Model) View() string {
 	b.WriteString(m.renderFooter())
 	if m.help {
 		b.WriteString("\n")
-		b.WriteString(m.styles.muted.Render("1-5 tabs · ↑/↓ j/k select · enter detail · r refresh · p probe · q quit"))
+		b.WriteString(m.renderHelp())
 	}
 	return b.String()
+}
+
+func (m Model) renderHelp() string {
+	switch m.tab {
+	case TabOverview:
+		return m.styles.muted.Render("Overview: ↑/↓ sections · enter dive · / search LLMs · 2-5 tabs · r refresh · q quit")
+	default:
+		return m.styles.muted.Render("1-5 tabs · ↑/↓ j/k select · / filter · enter detail · a all containers (docker) · p probe · r refresh · q quit")
+	}
 }
 
 func (m Model) renderHeader() string {
@@ -564,7 +676,7 @@ func (m Model) renderBody() string {
 
 	switch m.tab {
 	case TabOverview:
-		return m.styles.pane.Render(m.overviewVP.View())
+		return m.styles.pane.Render(renderDashboard(m.snap, m.history, m.overviewFocus, m.width, m.styles))
 	case TabProbe:
 		return m.styles.pane.Render(m.probeVP.View())
 	case TabGPU:
@@ -581,7 +693,7 @@ func (m Model) renderBody() string {
 		if m.snap != nil && (m.snap.Docker == nil || !m.snap.Docker.Available) {
 			return m.styles.pane.Render("Docker not available.")
 		}
-		if m.snap != nil && len(runningContainers(m.snap.Docker.Containers)) == 0 {
+		if m.snap != nil && len(dockerContainersForList(m.snap.Docker.Containers, m.dockerShowAll)) == 0 {
 			return m.renderSplit(m.dockerList.View(), "No running containers.")
 		}
 		return m.renderSplit(m.dockerList.View(), m.dockerDetail.View())
@@ -600,9 +712,22 @@ func (m Model) renderSplit(left, right string) string {
 }
 
 func (m Model) renderFooter() string {
-	hint := "↑/↓ select · enter detail · r refresh · p probe · q quit · ? help"
-	if m.tabUsesList() && m.focusDetail {
-		hint = "detail focused · ↑/↓ scroll · esc back · r refresh · q quit"
+	var hint string
+	switch m.tab {
+	case TabOverview:
+		hint = "↑/↓ sections · enter dive · / search · r refresh · q quit · ? help"
+	case TabDocker:
+		if m.tabUsesList() && m.focusDetail {
+			hint = "detail · esc back · a all/running · / filter · r refresh · q quit"
+		} else {
+			hint = "↑/↓ select · / filter · a all/running · enter detail · r refresh · q quit · ? help"
+		}
+	default:
+		if m.tabUsesList() && m.focusDetail {
+			hint = "detail focused · ↑/↓ scroll · esc back · r refresh · q quit"
+		} else {
+			hint = "↑/↓ select · / filter · enter detail · p probe · r refresh · q quit · ? help"
+		}
 	}
 	return m.styles.footer.Render(hint)
 }

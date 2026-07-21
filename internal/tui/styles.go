@@ -3,19 +3,24 @@ package tui
 import "github.com/charmbracelet/lipgloss"
 
 type styles struct {
-	title    lipgloss.Style
-	subtitle lipgloss.Style
-	tab      lipgloss.Style
+	title     lipgloss.Style
+	subtitle  lipgloss.Style
+	tab       lipgloss.Style
 	tabActive lipgloss.Style
-	header   lipgloss.Style
-	footer   lipgloss.Style
-	label    lipgloss.Style
-	value    lipgloss.Style
-	muted    lipgloss.Style
-	ok       lipgloss.Style
-	fail     lipgloss.Style
-	pane     lipgloss.Style
-	border   lipgloss.Style
+	header    lipgloss.Style
+	footer    lipgloss.Style
+	label     lipgloss.Style
+	value     lipgloss.Style
+	muted     lipgloss.Style
+	ok        lipgloss.Style
+	fail      lipgloss.Style
+	warn      lipgloss.Style
+	pane      lipgloss.Style
+	border    lipgloss.Style
+	focus     lipgloss.Style
+	barEmpty  lipgloss.Style
+	spark     lipgloss.Style
+	info      lipgloss.Style
 }
 
 func newStyles(noColor bool) styles {
@@ -33,8 +38,13 @@ func newStyles(noColor bool) styles {
 			muted:     plain,
 			ok:        plain,
 			fail:      plain,
+			warn:      plain,
 			pane:      plain,
 			border:    plain,
+			focus:     plain,
+			barEmpty:  plain,
+			spark:     plain,
+			info:      plain,
 		}
 	}
 
@@ -62,10 +72,39 @@ func newStyles(noColor bool) styles {
 			Foreground(lipgloss.Color("42")),
 		fail: lipgloss.NewStyle().
 			Foreground(lipgloss.Color("196")),
+		warn: lipgloss.NewStyle().
+			Foreground(lipgloss.Color("214")),
 		pane: lipgloss.NewStyle().
 			Padding(0, 1),
 		border: lipgloss.NewStyle().
 			Border(lipgloss.NormalBorder()).
 			BorderForeground(lipgloss.Color("238")),
+		focus: lipgloss.NewStyle().
+			Bold(true).
+			Foreground(lipgloss.Color("86")),
+		barEmpty: lipgloss.NewStyle().
+			Foreground(lipgloss.Color("238")),
+		spark: lipgloss.NewStyle().
+			Foreground(lipgloss.Color("245")),
+		info: lipgloss.NewStyle().
+			Foreground(lipgloss.Color("117")),
 	}
+}
+
+func (s styles) severityStyle(severity string) lipgloss.Style {
+	switch severity {
+	case "critical", "error":
+		return s.fail
+	case "warning", "warn":
+		return s.warn
+	default:
+		return s.info
+	}
+}
+
+func (s styles) healthStyle(ok bool) lipgloss.Style {
+	if ok {
+		return s.ok
+	}
+	return s.fail
 }
