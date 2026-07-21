@@ -41,11 +41,9 @@ func collectNVIDIA(ctx context.Context) ([]snapshot.GPU, error) {
 		"compute-apps",
 	)
 	if err == nil && strings.TrimSpace(procOut) != "" {
-		procs, procErr := parseNVIDIAProcessesCSV(procOut)
-		if procErr != nil {
-			return nil, fmt.Errorf("parse nvidia-smi process query: %w", procErr)
+		if procs, procErr := parseNVIDIAProcessesCSV(procOut); procErr == nil {
+			attachNVIDIAProcesses(gpus, procs)
 		}
-		attachNVIDIAProcesses(gpus, procs)
 	}
 
 	return gpus, nil

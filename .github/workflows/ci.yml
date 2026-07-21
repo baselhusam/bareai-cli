@@ -19,14 +19,49 @@ jobs:
 
       - uses: actions/setup-go@v5
         with:
-          go-version: "1.23"
+          go-version: "1.25"
           cache: true
 
       - name: Test
         run: go test ./...
 
       - name: Build
-        run: go build -o bareai ./cmd/bareai
+        run: go build -o bareai${{ matrix.os == 'windows-latest' && '.exe' || '' }} ./cmd/bareai
+
+  smoke:
+    name: Smoke commands
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.25"
+          cache: true
+
+      - name: Build
+        shell: bash
+        run: |
+          go build -o bareai${{ matrix.os == 'windows-latest' && '.exe' || '' }} ./cmd/bareai
+
+      - name: Smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          BIN=./bareai
+          if [ "${{ matrix.os }}" = "windows-latest" ]; then BIN=./bareai.exe; fi
+          export NO_COLOR=1
+          "$BIN" status --json >/dev/null
+          "$BIN" gpu --json >/dev/null
+          "$BIN" docker --json >/dev/null
+          "$BIN" llm --json >/dev/null
+          "$BIN" inspect --json >/dev/null
+          "$BIN" probe --endpoint http://127.0.0.1:59999 --runtime ollama --json >/dev/null
+          "$BIN" watch >/dev/null
 
   lint:
     name: Lint
@@ -36,7 +71,7 @@ jobs:
 
       - uses: actions/setup-go@v5
         with:
-          go-version: "1.23"
+          go-version: "1.25"
           cache: true
 
       - name: golangci-lint

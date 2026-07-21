@@ -71,6 +71,7 @@ func discoverProcesses(ctx context.Context) ([]candidate, []snapshot.Skip) {
 
 func matchProcessRuntime(name, cmdline string) string {
 	name = strings.ToLower(name)
+	name = strings.TrimSuffix(name, ".exe")
 	cmdline = strings.ToLower(cmdline)
 	if runtime, ok := processNames[name]; ok {
 		return runtime

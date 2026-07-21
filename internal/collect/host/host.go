@@ -108,6 +108,12 @@ func collectDisks(ctx context.Context) []snapshot.Disk {
 }
 
 func skipMount(mountpoint, fstype string) bool {
+	if runtime.GOOS == "windows" {
+		switch strings.ToUpper(fstype) {
+		case "PROC", "SYSFS", "TMPFS", "DEVTMPFS":
+			return true
+		}
+	}
 	switch mountpoint {
 	case "/proc", "/sys", "/dev", "/run", "/dev/shm":
 		return true

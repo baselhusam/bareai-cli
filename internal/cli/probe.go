@@ -60,11 +60,14 @@ var probeCmd = &cobra.Command{
 			}
 		} else {
 			docker, dockerSkips, err := dockercollect.Collect(ctx)
-			if err != nil {
-				return err
-			}
 			snap.Docker = &docker
 			snap.Skipped = append(snap.Skipped, dockerSkips...)
+			if err != nil {
+				snap.Skipped = append(snap.Skipped, snapshot.Skip{
+					Component: "docker",
+					Reason:    err.Error(),
+				})
+			}
 
 			gpus, gpuSkips := gpucollect.SnapshotGPU(ctx)
 			snap.GPUs = gpus

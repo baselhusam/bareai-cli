@@ -3,6 +3,7 @@ package render
 import (
 	"fmt"
 	"io"
+	"runtime"
 	"strings"
 	"time"
 
@@ -96,6 +97,10 @@ func writeHostSection(w io.Writer, h *snapshot.Host) error {
 
 	if hasLoad(h) {
 		if _, err := fmt.Fprintf(w, "  Load:      %.2f / %.2f / %.2f (1/5/15 min)\n", h.Load1, h.Load5, h.Load15); err != nil {
+			return err
+		}
+	} else if runtime.GOOS == "windows" {
+		if _, err := fmt.Fprintln(w, "  Load:      n/a (not available on this platform)"); err != nil {
 			return err
 		}
 	}

@@ -1,4 +1,4 @@
-.PHONY: all build test lint run clean
+.PHONY: all build test test-integration smoke smoke-windows lint run clean
 
 BINARY := bareai
 CMD := ./cmd/bareai
@@ -10,6 +10,15 @@ build:
 
 test:
 	go test ./...
+
+test-integration: build
+	go test -tags=integration ./internal/smoke/...
+
+smoke: build
+	./scripts/smoke.sh
+
+smoke-windows: build
+	powershell -ExecutionPolicy Bypass -File scripts/smoke.ps1
 
 lint:
 	golangci-lint run

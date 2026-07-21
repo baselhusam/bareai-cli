@@ -74,6 +74,20 @@ func TestAttachNVIDIAProcesses(t *testing.T) {
 	}
 }
 
+func TestParseNVIDIAProcessesCSVMalformedDoesNotBlockGPUs(t *testing.T) {
+	gpus, err := parseNVIDIAGPUsCSV(`0, NVIDIA A100, GPU-abc, 535.54, 81920, 4096, 45, 55, 250.00, 300.00`)
+	if err != nil {
+		t.Fatalf("parse GPUs failed: %v", err)
+	}
+	_, procErr := parseNVIDIAProcessesCSV("bad,data")
+	if procErr == nil {
+		t.Fatal("expected malformed process CSV to fail parse")
+	}
+	if len(gpus) != 1 {
+		t.Fatalf("expected 1 GPU regardless of process parse, got %d", len(gpus))
+	}
+}
+
 func TestParseOptionalFloat(t *testing.T) {
 	if parseOptionalFloat("[N/A]") != nil {
 		t.Error("expected nil for [N/A]")

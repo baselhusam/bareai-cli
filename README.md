@@ -2,7 +2,7 @@
 
 CLI and TUI for solo AI engineers inspecting bare-metal AI infrastructure: host resources, GPUs (NVIDIA / AMD / Apple), Docker, and local LLM runtimes (Ollama, vLLM, SGLang, Triton, …).
 
-**Status:** Phase 6 complete — interactive TUI via `bareai` (TTY) or `bareai watch`. See [ROADMAP.md](ROADMAP.md).
+**Status:** Phase 7 complete — cross-platform hardening with full capability matrix. See [ROADMAP.md](ROADMAP.md).
 
 **Repository:** [github.com/baselhusam/bareai-cli](https://github.com/baselhusam/bareai-cli)
 
@@ -61,15 +61,33 @@ GPU 0 (nvidia)
 
 Use `--json` for machine-readable output (scripts, agents, CI).
 
-### GPU capability matrix
+### Platform capability matrix
+
+**Primary path:** Linux bare-metal is the reference AIOps environment with full collector fidelity.
+
+| Feature | Linux | macOS | Windows |
+|---------|-------|-------|---------|
+| **Host** (`status`) | Full: CPU, RAM, disk, load | Full; load may be 0 on some configs | Full; load averages show as n/a |
+| **GPU** | NVIDIA via `nvidia-smi`; AMD via sysfs/ROCm | Apple Silicon chip name; NVIDIA if driver installed | NVIDIA if `nvidia-smi` installed |
+| **Docker** | Full via unix socket | Full via Docker Desktop socket | Full via named pipe (`docker_engine`) |
+| **LLM discovery** | Docker + process + port scan | Docker Desktop; native Ollama on `:11434` | Docker Desktop; process `.exe` names; port scan |
+| **Probe / inspect / TUI** | Full | Full | Full; TUI via Windows Terminal |
+
+#### GPU detail
 
 | Platform | NVIDIA | AMD | Apple |
 |----------|--------|-----|-------|
-| Linux | Full via `nvidia-smi` (util, VRAM, temp, power, processes) | ROCm / sysfs VRAM + temp when present | n/a |
-| macOS | If `nvidia-smi` installed | n/a | Best-effort chip name; unified memory (no discrete VRAM) |
+| Linux | Full via `nvidia-smi` (util, VRAM, temp, power, processes) | sysfs VRAM + temp; `rocm-smi` JSON deferred to sysfs fallback | n/a |
+| macOS | If `nvidia-smi` installed | n/a | Chip name only; unified memory (no util/temp/power) |
 | Windows | If `nvidia-smi` installed | n/a | n/a |
 
-When no accelerators are found, commands exit `0` with a clear message.
+#### Platform notes
+
+- **Linux:** NVIDIA GPU↔process correlation via `nvidia-smi`; AMD metrics from `/sys/class/drm`
+- **macOS:** Ollama commonly via Docker Desktop or native app; process scan may need permissions
+- **Windows:** Docker Desktop required for containers; WSL2 engine not visible unless `DOCKER_HOST` is set; load averages unavailable
+
+When collectors are unavailable, commands exit `0` with clear skip messages. See [docs/CHECKLIST.md](docs/CHECKLIST.md) for per-OS manual verification steps.
 
 ### Docker
 
@@ -184,10 +202,14 @@ The TUI reuses the same collectors and probe logic as the CLI; it is a view over
 
 ```bash
 make test
+make test-integration   # subprocess smoke tests (requires built binary)
+make smoke              # Linux/macOS checklist script
 make lint    # requires golangci-lint
 make run ARGS="gpu"
 make clean
 ```
+
+Cross-platform manual checklist: [docs/CHECKLIST.md](docs/CHECKLIST.md)
 
 Install `golangci-lint`:
 

@@ -2,14 +2,11 @@ package docker
 
 import (
 	"context"
-	"errors"
-	"fmt"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/volume"
-	"github.com/docker/docker/client"
 
 	"github.com/baselhusam/bareai-cli/internal/snapshot"
 )
@@ -30,33 +27,24 @@ func Collect(ctx context.Context) (snapshot.Docker, []snapshot.Skip, error) {
 
 func collectWithClient(ctx context.Context, cli apiClient) (snapshot.Docker, []snapshot.Skip, error) {
 	if err := cli.Ping(ctx); err != nil {
-		if client.IsErrConnectionFailed(err) || errors.Is(err, context.DeadlineExceeded) || errors.Is(err, context.Canceled) {
-			return unavailable(err), []snapshot.Skip{{
-				Component: "docker",
-				Reason:    daemonUnavailableReason(err),
-			}}, nil
-		}
-		return snapshot.Docker{}, nil, fmt.Errorf("docker ping: %w", err)
+		return unavailable(err), []snapshot.Skip{{
+			Component: "docker",
+			Reason:    daemonUnavailableReason(err),
+		}}, nil
 	}
 
 	info, err := cli.Info(ctx)
 	if err != nil {
-		if client.IsErrConnectionFailed(err) {
-			return unavailable(err), []snapshot.Skip{{
-				Component: "docker",
-				Reason:    daemonUnavailableReason(err),
-			}}, nil
-		}
-		return snapshot.Docker{}, nil, fmt.Errorf("docker info: %w", err)
+		return unavailable(err), []snapshot.Skip{{
+			Component: "docker",
+			Reason:    err.Error(),
+		}}, nil
 	}
 
 	d := mapInfo(info, cli.ClientVersion())
 	var skips []snapshot.Skip
 
-	containers, containerSkips, err := collectContainers(ctx, cli)
-	if err != nil {
-		return snapshot.Docker{}, skips, err
-	}
+	containers, containerSkips, _ := collectContainers(ctx, cli)
 	d.Containers = containers
 	skips = append(skips, containerSkips...)
 
@@ -95,13 +83,10 @@ func collectWithClient(ctx context.Context, cli apiClient) (snapshot.Docker, []s
 func collectContainers(ctx context.Context, cli apiClient) ([]snapshot.DockerContainer, []snapshot.Skip, error) {
 	list, err := cli.ContainerList(ctx, container.ListOptions{All: true})
 	if err != nil {
-		if client.IsErrConnectionFailed(err) {
-			return nil, []snapshot.Skip{{
-				Component: "docker.containers",
-				Reason:    err.Error(),
-			}}, nil
-		}
-		return nil, nil, fmt.Errorf("docker container list: %w", err)
+		return nil, []snapshot.Skip{{
+			Component: "docker.containers",
+			Reason:    err.Error(),
+		}}, nil
 	}
 
 	containers := make([]snapshot.DockerContainer, 0, len(list))

@@ -114,11 +114,11 @@ CLI + TUI for solo AI engineers inspecting bare-metal AI boxes: host, GPUs (NVID
 
 **Goal:** First-class Mac / Windows / Linux behavior.
 
-- [ ] Document per-OS capability matrix (what works where)
-- [ ] Windows: Docker Desktop pipe, NVIDIA where present
-- [ ] macOS: host + Docker + Ollama path; honest Apple GPU limits
-- [ ] Linux: primary AIOps path (full collectors)
-- [ ] Integration smoke tests / manual checklist per OS
+- [x] Document per-OS capability matrix (what works where)
+- [x] Windows: Docker Desktop pipe, NVIDIA where present
+- [x] macOS: host + Docker + Ollama path; honest Apple GPU limits
+- [x] Linux: primary AIOps path (full collectors)
+- [x] Integration smoke tests / manual checklist per OS
 
 **Exit:** Capability matrix in README; no surprise crashes on unsupported features.
 
