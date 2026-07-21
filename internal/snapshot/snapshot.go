@@ -88,6 +88,7 @@ type DockerContainer struct {
 	State          string            `json:"state"`
 	Status         string            `json:"status"`
 	Created        time.Time         `json:"created"`
+	PID            int               `json:"pid,omitempty"`
 	Ports          []DockerPort      `json:"ports,omitempty"`
 	Labels         map[string]string `json:"labels,omitempty"`
 	GPURequested   bool              `json:"gpu_requested"`
@@ -126,10 +127,36 @@ type DockerVolume struct {
 	Scope      string `json:"scope,omitempty"`
 }
 
-// LLM is filled in Phase 4.
+// LLM describes a discovered local inference server.
 type LLM struct {
-	Name     string `json:"name"`
-	Endpoint string `json:"endpoint"`
+	Runtime       string             `json:"runtime"`
+	Name          string             `json:"name"`
+	Endpoint      string             `json:"endpoint"`
+	Source        string             `json:"source"`
+	PID           int                `json:"pid,omitempty"`
+	ContainerID   string             `json:"container_id,omitempty"`
+	ContainerName string             `json:"container_name,omitempty"`
+	GPUIndex      *int               `json:"gpu_index,omitempty"`
+	Models        []LLMModel         `json:"models,omitempty"`
+	Health        *ProbeResult       `json:"health,omitempty"`
+	Probe         *ProbeResult       `json:"probe,omitempty"`
+	Metrics       map[string]float64 `json:"metrics,omitempty"`
+}
+
+// LLMModel describes a model served by an inference runtime.
+type LLMModel struct {
+	ID   string `json:"id"`
+	Name string `json:"name,omitempty"`
+	Size uint64 `json:"size_bytes,omitempty"`
+}
+
+// ProbeResult holds the outcome of an HTTP health or smoke probe.
+type ProbeResult struct {
+	OK        bool   `json:"ok"`
+	LatencyMS int64  `json:"latency_ms"`
+	Status    int    `json:"status_code,omitempty"`
+	Message   string `json:"message,omitempty"`
+	Error     string `json:"error,omitempty"`
 }
 
 // Finding is filled in Phase 9.

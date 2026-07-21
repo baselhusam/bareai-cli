@@ -69,13 +69,13 @@ CLI + TUI for solo AI engineers inspecting bare-metal AI boxes: host, GPUs (NVID
 
 **Goal:** Find local inference servers and smoke-test them.
 
-- [ ] Discovery: process names, listening ports, Docker image/name heuristics
-- [ ] Adapters: Ollama, vLLM, SGLang, Triton (common interface)
-- [ ] HTTP probes: health, `/v1/models` (or vendor equivalent), Prometheus `/metrics` when present
-- [ ] Correlate model/server ↔ container ↔ GPU when possible
-- [ ] `bareai llm` — list servers, models, endpoints, basic load metrics if exposed
-- [ ] `bareai probe` — one-hit request (chat/completions or vendor API) with latency/status
-- [ ] Timeouts, no hanging; failures reported as probe results (not crashes)
+- [x] Discovery: process names, listening ports, Docker image/name heuristics
+- [x] Adapters: Ollama, vLLM, SGLang, Triton (common interface)
+- [x] HTTP probes: health, `/v1/models` (or vendor equivalent), Prometheus `/metrics` when present
+- [x] Correlate model/server ↔ container ↔ GPU when possible
+- [x] `bareai llm` — list servers, models, endpoints, basic load metrics if exposed
+- [x] `bareai probe` — one-hit request (chat/completions or vendor API) with latency/status
+- [x] Timeouts, no hanging; failures reported as probe results (not crashes)
 
 **Exit:** Discovers at least Ollama + one OpenAI-compatible server; `probe` returns clear pass/fail.
 

@@ -43,8 +43,7 @@ func TestWriteStatus(t *testing.T) {
 		"test-box",
 		"Apple M1",
 		"none detected",
-		"not available",
-		"not collected yet (Phase 4)",
+		"none discovered",
 	} {
 		if !strings.Contains(out, want) {
 			t.Errorf("output missing %q\n%s", want, out)

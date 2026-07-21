@@ -53,6 +53,10 @@ func hasNVIDIARuntime(runtimes map[string]system.RuntimeWithStatus, defaultRunti
 func mapContainer(summary types.Container, inspect types.ContainerJSON) snapshot.DockerContainer {
 	name := containerName(summary.Names)
 	deviceRequests := deviceRequestsFromInspect(inspect)
+	pid := 0
+	if inspect.ContainerJSONBase != nil && inspect.State != nil {
+		pid = inspect.State.Pid
+	}
 	return snapshot.DockerContainer{
 		ID:             shortID(summary.ID),
 		Name:           name,
@@ -60,6 +64,7 @@ func mapContainer(summary types.Container, inspect types.ContainerJSON) snapshot
 		State:          summary.State,
 		Status:         summary.Status,
 		Created:        time.Unix(summary.Created, 0).UTC(),
+		PID:            pid,
 		Ports:          mapPorts(summary.Ports),
 		Labels:         summary.Labels,
 		GPURequested:   gpuRequested(deviceRequests),
