@@ -42,7 +42,7 @@ func WriteStatus(w io.Writer, snap *snapshot.Snapshot, noColor bool) error {
 	if _, err := fmt.Fprintln(w); err != nil {
 		return err
 	}
-	if _, err := fmt.Fprintln(w, "GPUs:        not collected yet (Phase 2)"); err != nil {
+	if err := writeGPUSummary(w, snap.GPUs); err != nil {
 		return err
 	}
 	if _, err := fmt.Fprintln(w, "Docker:      not collected yet (Phase 3)"); err != nil {

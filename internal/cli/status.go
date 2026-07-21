@@ -5,9 +5,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	hostcollect "github.com/baselhusam/bareai-cli/internal/collect/host"
+	"github.com/baselhusam/bareai-cli/internal/collect"
 	"github.com/baselhusam/bareai-cli/internal/render"
-	"github.com/baselhusam/bareai-cli/internal/snapshot"
 )
 
 var statusCmd = &cobra.Command{
@@ -18,16 +17,7 @@ var statusCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(cmd.Context(), opts.Timeout)
 		defer cancel()
 
-		snap := snapshot.New()
-		host, err := hostcollect.Collect(ctx)
-		if err != nil {
-			snap.Skipped = append(snap.Skipped, snapshot.Skip{
-				Component: "host",
-				Reason:    err.Error(),
-			})
-		} else {
-			snap.Host = &host
-		}
+		snap := collect.Snapshot(ctx)
 
 		if opts.JSON {
 			return render.WriteJSON(cmd.OutOrStdout(), snap)

@@ -42,13 +42,32 @@ func TestWriteStatus(t *testing.T) {
 		"bareai status",
 		"test-box",
 		"Apple M1",
-		"not collected yet (Phase 2)",
+		"none detected",
 		"not collected yet (Phase 3)",
 		"not collected yet (Phase 4)",
 	} {
 		if !strings.Contains(out, want) {
 			t.Errorf("output missing %q\n%s", want, out)
 		}
+	}
+}
+
+func TestWriteStatusWithGPUs(t *testing.T) {
+	snap := &snapshot.Snapshot{
+		CollectedAt: time.Date(2026, 7, 22, 12, 0, 0, 0, time.UTC),
+		GPUs: []snapshot.GPU{{
+			Index:  0,
+			Vendor: "apple",
+			Name:   "Apple M3 Max",
+		}},
+	}
+
+	var buf bytes.Buffer
+	if err := WriteStatus(&buf, snap, true); err != nil {
+		t.Fatalf("WriteStatus failed: %v", err)
+	}
+	if !strings.Contains(buf.String(), "Apple M3 Max") {
+		t.Fatalf("expected GPU in status output: %s", buf.String())
 	}
 }
 

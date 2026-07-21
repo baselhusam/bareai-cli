@@ -41,11 +41,11 @@ CLI + TUI for solo AI engineers inspecting bare-metal AI boxes: host, GPUs (NVID
 
 **Goal:** Accelerator inventory that degrades cleanly per platform.
 
-- [ ] NVIDIA: NVML and/or `nvidia-smi` fallback (util, VRAM, temp, power, processes)
-- [ ] AMD: ROCm / sysfs-style metrics where available
-- [ ] Apple Silicon: best-effort GPU/memory reporting (document limits)
-- [ ] Multi-GPU listing + process ↔ device correlation when possible
-- [ ] `bareai gpu` command + status section
+- [x] NVIDIA: NVML and/or `nvidia-smi` fallback (util, VRAM, temp, power, processes)
+- [x] AMD: ROCm / sysfs-style metrics where available
+- [x] Apple Silicon: best-effort GPU/memory reporting (document limits)
+- [x] Multi-GPU listing + process ↔ device correlation when possible
+- [x] `bareai gpu` command + status section
 
 **Exit:** Correct vendor path on at least one real NVIDIA Linux box; stubs/clear messages elsewhere.
 

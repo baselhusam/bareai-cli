@@ -2,7 +2,7 @@
 
 CLI and TUI for solo AI engineers inspecting bare-metal AI infrastructure: host resources, GPUs (NVIDIA / AMD / Apple), Docker, and local LLM runtimes (Ollama, vLLM, SGLang, Triton, …).
 
-**Status:** Phase 1 complete — `bareai status` reports host inventory (CPU, RAM, disk, uptime). Other commands are still stubbed. See [ROADMAP.md](ROADMAP.md).
+**Status:** Phase 2 complete — `bareai status` and `bareai gpu` report host + accelerator inventory. Docker/LLM commands are still stubbed. See [ROADMAP.md](ROADMAP.md).
 
 **Repository:** [github.com/baselhusam/bareai-cli](https://github.com/baselhusam/bareai-cli)
 
@@ -24,40 +24,47 @@ go build -o bareai ./cmd/bareai
 ./bareai --help
 ./bareai status
 ./bareai status --json
-./bareai gpu          # still a stub
+./bareai gpu
+./bareai gpu --json
 ```
 
 ### Example
 
 ```text
-$ bareai status
-bareai status
+$ bareai gpu
+bareai gpu
 Collected: 2026-07-22T12:00:00Z
 
-Host
-  Hostname:  ai-box
-  OS:        linux 6.8.0 (linux)
-  Arch:      amd64
-  Uptime:    5d 3h 12m
-  CPU:       AMD EPYC 7763 (64 cores, 128 logical)
-  Load:      2.10 / 1.85 / 1.60 (1/5/15 min)
-  Memory:    96.0 GiB / 256.0 GiB (38% used, 160.0 GiB available)
-  Disks:
-    / (ext4)                 420.0 GiB / 1.0 TiB (42% used)
-
-GPUs:        not collected yet (Phase 2)
-Docker:      not collected yet (Phase 3)
-LLM runtimes: not collected yet (Phase 4)
+GPU 0 (nvidia)
+  Name:      NVIDIA A100-SXM4-80GB
+  UUID:      GPU-abc-123
+  Driver:    535.54
+  Memory:    4.0 GiB / 80.0 GiB
+  Util:      45%
+  Temp:      55 C
+  Power:     250 W / 300 W
+  Processes:
+    pid 1234  python  2.0 GiB
 ```
 
 Use `--json` for machine-readable output (scripts, agents, CI).
+
+### GPU capability matrix
+
+| Platform | NVIDIA | AMD | Apple |
+|----------|--------|-----|-------|
+| Linux | Full via `nvidia-smi` (util, VRAM, temp, power, processes) | ROCm / sysfs VRAM + temp when present | n/a |
+| macOS | If `nvidia-smi` installed | n/a | Best-effort chip name; unified memory (no discrete VRAM) |
+| Windows | If `nvidia-smi` installed | n/a | n/a |
+
+When no accelerators are found, commands exit `0` with a clear message.
 
 ### Commands
 
 | Command   | Description                                      | Status   |
 |-----------|--------------------------------------------------|----------|
-| `status`  | Host and infrastructure summary                  | Phase 1  |
-| `gpu`     | GPU and accelerator details                      | stub     |
+| `status`  | Host and infrastructure summary                  | Phase 1–2 |
+| `gpu`     | GPU and accelerator details                      | Phase 2  |
 | `docker`  | Docker containers, images, and volumes           | stub     |
 | `llm`     | Discovered LLM runtimes and models               | stub     |
 | `probe`   | One-hit smoke tests against discovered LLMs      | stub     |
@@ -77,7 +84,7 @@ Use `--json` for machine-readable output (scripts, agents, CI).
 ```bash
 make test
 make lint    # requires golangci-lint
-make run ARGS="status"
+make run ARGS="gpu"
 make clean
 ```
 

@@ -42,10 +42,27 @@ type Disk struct {
 	Free   uint64 `json:"free_bytes"`
 }
 
-// GPU is filled in Phase 2.
+// GPU holds accelerator inventory and metrics.
 type GPU struct {
-	Index int    `json:"index"`
-	Name  string `json:"name"`
+	Index       int          `json:"index"`
+	Vendor      string       `json:"vendor"`
+	Name        string       `json:"name"`
+	UUID        string       `json:"uuid,omitempty"`
+	Driver      string       `json:"driver,omitempty"`
+	MemoryTotal uint64       `json:"memory_total_bytes"`
+	MemoryUsed  uint64       `json:"memory_used_bytes"`
+	Utilization *float64     `json:"utilization_pct,omitempty"`
+	Temperature *float64     `json:"temperature_c,omitempty"`
+	PowerDrawW  *float64     `json:"power_draw_w,omitempty"`
+	PowerLimitW *float64     `json:"power_limit_w,omitempty"`
+	Processes   []GPUProcess `json:"processes,omitempty"`
+}
+
+// GPUProcess describes a process using a GPU.
+type GPUProcess struct {
+	PID        int    `json:"pid"`
+	Name       string `json:"name,omitempty"`
+	MemoryUsed uint64 `json:"memory_used_bytes"`
 }
 
 // Docker is filled in Phase 3.
