@@ -98,13 +98,13 @@ CLI + TUI for solo AI engineers inspecting bare-metal AI boxes: host, GPUs (NVID
 
 **Goal:** Default day-to-day UX: browse, select, monitor.
 
-- [ ] Bubble Tea app (`bareai` / `bareai watch`)
-- [ ] Panels or tabs: Overview · GPUs · LLMs · Docker · Probe
-- [ ] Keyboard navigation, selection, detail panes
-- [ ] Live refresh for metrics (configurable interval)
-- [ ] Trigger one-hit probe from TUI (same probe package as CLI)
-- [ ] Reuse collectors; TUI is a view, not a second implementation
-- [ ] Fallback: if not a TTY, print CLI help or `status`
+- [x] Bubble Tea app (`bareai` / `bareai watch`)
+- [x] Panels or tabs: Overview · GPUs · LLMs · Docker · Probe
+- [x] Keyboard navigation, selection, detail panes
+- [x] Live refresh for metrics (configurable interval)
+- [x] Trigger one-hit probe from TUI (same probe package as CLI)
+- [x] Reuse collectors; TUI is a view, not a second implementation
+- [x] Fallback: if not a TTY, print CLI help or `status`
 
 **Exit:** Usable live TUI over SSH; selections and probe from the UI.
 

@@ -6,6 +6,9 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
+	"golang.org/x/term"
+
+	"github.com/baselhusam/bareai-cli/internal/tui"
 )
 
 // Options holds global CLI flags shared across commands.
@@ -27,6 +30,12 @@ var rootCmd = &cobra.Command{
 Inspect host resources, GPUs, Docker, and local LLM runtimes (Ollama, vLLM, SGLang, Triton, etc.)
 without mutating the system.`,
 	SilenceUsage: true,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if !term.IsTerminal(int(os.Stdout.Fd())) {
+			return cmd.Help()
+		}
+		return tui.Run(cmd.Context(), tuiOptionsFromCLI(3*time.Second))
+	},
 }
 
 // Execute runs the root command.

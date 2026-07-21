@@ -79,19 +79,7 @@ var probeCmd = &cobra.Command{
 				return err
 			}
 			snap.Skipped = append(snap.Skipped, llmSkips...)
-
-			for i := range llms {
-				adapter := probe.AdapterForRuntime(llms[i].Runtime)
-				if adapter == nil {
-					adapter = probe.DetectAdapter(ctx, client, llms[i].Endpoint)
-				}
-				if adapter == nil {
-					continue
-				}
-				result := probe.Smoke(ctx, client, llms[i], adapter, probeOpts.Model, probeOpts.Prompt)
-				llms[i].Probe = &result
-			}
-			snap.LLMs = llms
+			snap.LLMs = probe.SmokeAll(ctx, client, llms, probeOpts.Model, probeOpts.Prompt)
 		}
 
 		if opts.JSON {

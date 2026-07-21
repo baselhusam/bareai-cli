@@ -2,7 +2,7 @@
 
 CLI and TUI for solo AI engineers inspecting bare-metal AI infrastructure: host resources, GPUs (NVIDIA / AMD / Apple), Docker, and local LLM runtimes (Ollama, vLLM, SGLang, Triton, …).
 
-**Status:** Phase 5 complete — `bareai inspect` aggregates host, GPU, Docker, and LLM into one correlated report with informational findings. See [ROADMAP.md](ROADMAP.md).
+**Status:** Phase 6 complete — interactive TUI via `bareai` (TTY) or `bareai watch`. See [ROADMAP.md](ROADMAP.md).
 
 **Repository:** [github.com/baselhusam/bareai-cli](https://github.com/baselhusam/bareai-cli)
 
@@ -36,6 +36,8 @@ go build -o bareai ./cmd/bareai
 ./bareai probe --json
 ./bareai inspect
 ./bareai inspect --json
+./bareai watch
+./bareai watch --refresh 5s
 ```
 
 ### Example
@@ -137,6 +139,25 @@ Findings
 
 Findings are informational only (no mutating suggestions until Phase 9 doctor).
 
+### Interactive TUI
+
+On a TTY, bare `bareai` launches the live dashboard. Use `bareai watch` explicitly with `--refresh` to control the snapshot interval (default `3s`).
+
+When stdout is not a terminal (pipes, CI), `bareai watch` falls back to `bareai status`; bare `bareai` shows help.
+
+| Key | Action |
+|-----|--------|
+| `1`–`5`, `Tab` | Switch tab (Overview · GPUs · LLMs · Docker · Probe) |
+| `↑`/`↓`, `j`/`k` | Move selection in list tabs |
+| `Enter` | Focus detail pane (scroll with arrows) |
+| `Esc` | Return focus to list |
+| `r` | Force refresh |
+| `p` | Run smoke probe on selected LLM (LLMs / Probe tabs) |
+| `q`, `Ctrl+C` | Quit |
+| `?` | Toggle key help |
+
+The TUI reuses the same collectors and probe logic as the CLI; it is a view over `snapshot.Snapshot` only.
+
 ### Commands
 
 | Command   | Description                                      | Status   |
@@ -147,7 +168,7 @@ Findings are informational only (no mutating suggestions until Phase 9 doctor).
 | `llm`     | Discovered LLM runtimes and models               | Phase 4  |
 | `probe`   | One-hit smoke tests against discovered LLMs      | Phase 4  |
 | `inspect` | Full correlated infrastructure report            | Phase 5  |
-| `watch`   | Live TUI monitoring dashboard                    | stub     |
+| `watch`   | Live TUI monitoring dashboard                    | Phase 6  |
 
 ### Global flags
 
@@ -156,6 +177,8 @@ Findings are informational only (no mutating suggestions until Phase 9 doctor).
 | `--json`      | `-j`  | false   | Output in JSON format                |
 | `--timeout`   |       | `10s`   | Timeout for probes and API calls     |
 | `--no-color`  |       | false   | Disable colored output               |
+
+`bareai watch` also accepts `--refresh` (default `3s`) for the live snapshot interval.
 
 ## Development
 

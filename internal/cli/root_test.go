@@ -1,9 +1,9 @@
 package cli
 
 import (
+	"context"
 	"testing"
-
-	"github.com/spf13/cobra"
+	"time"
 )
 
 func TestRootCommand(t *testing.T) {
@@ -34,19 +34,15 @@ func TestRootCommand(t *testing.T) {
 	}
 }
 
-func TestStubCommands(t *testing.T) {
-	tests := []struct {
-		cmd  *cobra.Command
-		name string
-	}{
-		{watchCmd, "watch"},
+func TestWatchNonTTYFallback(t *testing.T) {
+	watchCmd.SetContext(context.Background())
+	if err := watchCmd.RunE(watchCmd, nil); err != nil {
+		t.Fatalf("watch non-TTY fallback failed: %v", err)
 	}
+}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := tt.cmd.RunE(tt.cmd, nil); err != nil {
-				t.Fatalf("stub command failed: %v", err)
-			}
-		})
+func TestWatchRefreshFlagDefault(t *testing.T) {
+	if watchRefresh != 3*time.Second {
+		t.Fatalf("expected default refresh 3s, got %v", watchRefresh)
 	}
 }
