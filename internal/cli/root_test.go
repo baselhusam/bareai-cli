@@ -40,7 +40,6 @@ func TestStubCommands(t *testing.T) {
 		name string
 	}{
 		{llmCmd, "llm"},
-		{dockerCmd, "docker"},
 		{inspectCmd, "inspect"},
 		{probeCmd, "probe"},
 		{watchCmd, "watch"},

@@ -43,7 +43,7 @@ func TestWriteStatus(t *testing.T) {
 		"test-box",
 		"Apple M1",
 		"none detected",
-		"not collected yet (Phase 3)",
+		"not available",
 		"not collected yet (Phase 4)",
 	} {
 		if !strings.Contains(out, want) {

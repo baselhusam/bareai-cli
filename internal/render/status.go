@@ -45,7 +45,7 @@ func WriteStatus(w io.Writer, snap *snapshot.Snapshot, noColor bool) error {
 	if err := writeGPUSummary(w, snap.GPUs); err != nil {
 		return err
 	}
-	if _, err := fmt.Fprintln(w, "Docker:      not collected yet (Phase 3)"); err != nil {
+	if err := writeDockerSummary(w, snap.Docker); err != nil {
 		return err
 	}
 	if _, err := fmt.Fprintln(w, "LLM runtimes: not collected yet (Phase 4)"); err != nil {

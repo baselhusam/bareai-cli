@@ -55,11 +55,11 @@ CLI + TUI for solo AI engineers inspecting bare-metal AI boxes: host, GPUs (NVID
 
 **Goal:** Read-only Docker Engine view useful for AI workloads.
 
-- [ ] Connect via Docker API (socket / named pipe); skip if daemon absent
-- [ ] List containers (status, image, ports, GPU device requests when present)
-- [ ] List images and volumes (summary + optional detail flags)
-- [ ] Detect NVIDIA Container Toolkit / runtime presence (informational)
-- [ ] `bareai docker` + include in `inspect` / status
+- [x] Connect via Docker API (socket / named pipe); skip if daemon absent
+- [x] List containers (status, image, ports, GPU device requests when present)
+- [x] List images and volumes (summary + optional detail flags)
+- [x] Detect NVIDIA Container Toolkit / runtime presence (informational)
+- [x] `bareai docker` + include in `inspect` / status
 
 **Exit:** Useful Docker summary on a typical AI box; clean “Docker not available” elsewhere.
 

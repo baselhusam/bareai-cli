@@ -65,9 +65,65 @@ type GPUProcess struct {
 	MemoryUsed uint64 `json:"memory_used_bytes"`
 }
 
-// Docker is filled in Phase 3.
+// Docker holds read-only Docker Engine inventory.
 type Docker struct {
-	Available bool `json:"available"`
+	Available      bool              `json:"available"`
+	ServerVersion  string            `json:"server_version,omitempty"`
+	APIVersion     string            `json:"api_version,omitempty"`
+	OSType         string            `json:"os_type,omitempty"`
+	Architecture   string            `json:"architecture,omitempty"`
+	DefaultRuntime string            `json:"default_runtime,omitempty"`
+	Runtimes       []string          `json:"runtimes,omitempty"`
+	NVIDIARuntime  bool              `json:"nvidia_runtime"`
+	Containers     []DockerContainer `json:"containers,omitempty"`
+	Images         []DockerImage     `json:"images,omitempty"`
+	Volumes        []DockerVolume    `json:"volumes,omitempty"`
+}
+
+// DockerContainer describes a container relevant to AI workloads.
+type DockerContainer struct {
+	ID             string            `json:"id"`
+	Name           string            `json:"name"`
+	Image          string            `json:"image"`
+	State          string            `json:"state"`
+	Status         string            `json:"status"`
+	Created        time.Time         `json:"created"`
+	Ports          []DockerPort      `json:"ports,omitempty"`
+	Labels         map[string]string `json:"labels,omitempty"`
+	GPURequested   bool              `json:"gpu_requested"`
+	DeviceRequests []DeviceRequest   `json:"device_requests,omitempty"`
+}
+
+// DockerPort describes a published or exposed port.
+type DockerPort struct {
+	PrivatePort uint16 `json:"private_port"`
+	PublicPort  uint16 `json:"public_port,omitempty"`
+	Type        string `json:"type"`
+	IP          string `json:"ip,omitempty"`
+}
+
+// DeviceRequest describes a container device request (e.g. NVIDIA GPU).
+type DeviceRequest struct {
+	Driver       string   `json:"driver,omitempty"`
+	Count        int      `json:"count,omitempty"`
+	DeviceIDs    []string `json:"device_ids,omitempty"`
+	Capabilities []string `json:"capabilities,omitempty"`
+}
+
+// DockerImage describes a local image.
+type DockerImage struct {
+	ID       string    `json:"id"`
+	RepoTags []string  `json:"repo_tags,omitempty"`
+	Size     uint64    `json:"size_bytes"`
+	Created  time.Time `json:"created"`
+}
+
+// DockerVolume describes a named volume.
+type DockerVolume struct {
+	Name       string `json:"name"`
+	Driver     string `json:"driver"`
+	Mountpoint string `json:"mountpoint,omitempty"`
+	Scope      string `json:"scope,omitempty"`
 }
 
 // LLM is filled in Phase 4.
