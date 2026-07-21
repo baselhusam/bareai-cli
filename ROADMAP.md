@@ -12,12 +12,12 @@ CLI + TUI for solo AI engineers inspecting bare-metal AI boxes: host, GPUs (NVID
 
 **Goal:** Compilable binary, empty command tree, CI-ready layout.
 
-- [ ] Init Go module (`bareai`), `cmd/bareai`, Cobra root command
-- [ ] Placeholder subcommands: `status`, `gpu`, `llm`, `docker`, `inspect`, `probe`, `watch`
-- [ ] Global flags: `--json`, `--timeout`, `--no-color`
-- [ ] Makefile / `task` targets: `build`, `test`, `lint`
-- [ ] Basic GitHub Actions: build + test on Linux / macOS / Windows
-- [ ] README with vision, install placeholders, command overview
+- [x] Init Go module (`bareai`), `cmd/bareai`, Cobra root command
+- [x] Placeholder subcommands: `status`, `gpu`, `llm`, `docker`, `inspect`, `probe`, `watch`
+- [x] Global flags: `--json`, `--timeout`, `--no-color`
+- [x] Makefile / `task` targets: `build`, `test`, `lint`
+- [x] Basic GitHub Actions: build + test on Linux / macOS / Windows
+- [x] README with vision, install placeholders, command overview
 
 **Exit:** `go build` produces `bareai`; `--help` documents the surface.
 
@@ -27,11 +27,11 @@ CLI + TUI for solo AI engineers inspecting bare-metal AI boxes: host, GPUs (NVID
 
 **Goal:** Reliable host inventory and a shared snapshot model.
 
-- [ ] `internal/snapshot` types (Host, GPU, Docker, LLM, Findings)
-- [ ] Host collector: OS, arch, CPU count/model, load, RAM, disk, uptime
-- [ ] Platform adapters (Linux / macOS / Windows) with build tags
-- [ ] `bareai status` human table + `--json`
-- [ ] Graceful partial snapshots when a collector fails
+- [x] `internal/snapshot` types (Host, GPU, Docker, LLM, Findings)
+- [x] Host collector: OS, arch, CPU count/model, load, RAM, disk, uptime
+- [x] Platform adapters (Linux / macOS / Windows) with build tags
+- [x] `bareai status` human table + `--json`
+- [x] Graceful partial snapshots when a collector fails
 
 **Exit:** `bareai status` works on Mac/Linux/Windows without GPU or Docker.
 

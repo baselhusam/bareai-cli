@@ -39,7 +39,6 @@ func TestStubCommands(t *testing.T) {
 		cmd  *cobra.Command
 		name string
 	}{
-		{statusCmd, "status"},
 		{gpuCmd, "gpu"},
 		{llmCmd, "llm"},
 		{dockerCmd, "docker"},
