@@ -1,10 +1,6 @@
 package llm
 
-import (
-	"strings"
-
-	"github.com/baselhusam/bareai-cli/internal/snapshot"
-)
+import "github.com/baselhusam/bareai-cli/internal/snapshot"
 
 func correlate(llm *snapshot.LLM, in Input) {
 	if llm == nil {
@@ -63,56 +59,4 @@ func matchGPU(llm *snapshot.LLM, gpus []snapshot.GPU) {
 	if idx != nil {
 		llm.GPUIndex = idx
 	}
-}
-
-func sourceLabel(llm snapshot.LLM) string {
-	switch llm.Source {
-	case sourceDocker:
-		if llm.ContainerName != "" {
-			return "docker: " + llm.ContainerName
-		}
-		return "docker"
-	case sourceProcess:
-		if llm.PID > 0 {
-			return "process pid " + itoa(llm.PID)
-		}
-		return "process"
-	case sourcePort:
-		return "port scan"
-	default:
-		return llm.Source
-	}
-}
-
-func itoa(n int) string {
-	if n == 0 {
-		return "0"
-	}
-	neg := n < 0
-	if neg {
-		n = -n
-	}
-	var digits []byte
-	for n > 0 {
-		digits = append([]byte{byte('0' + n%10)}, digits...)
-		n /= 10
-	}
-	if neg {
-		digits = append([]byte{'-'}, digits...)
-	}
-	return string(digits)
-}
-
-func runtimeList(llms []snapshot.LLM) string {
-	seen := make(map[string]bool)
-	var names []string
-	for _, llm := range llms {
-		r := strings.ToLower(llm.Runtime)
-		if r == "" || seen[r] {
-			continue
-		}
-		seen[r] = true
-		names = append(names, r)
-	}
-	return strings.Join(names, ", ")
 }

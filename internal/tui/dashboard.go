@@ -444,7 +444,7 @@ func renderSkippedPanel(snap *snapshot.Snapshot, focus overviewFocus, s styles) 
 func wrapPanel(lines []string, focused bool, s styles) string {
 	body := strings.Join(lines, "\n")
 	if focused {
-		return s.border.Copy().BorderForeground(lipgloss.Color("86")).Render(body)
+		return s.border.BorderForeground(lipgloss.Color("86")).Render(body)
 	}
 	return s.border.Render(body)
 }

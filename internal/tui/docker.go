@@ -101,10 +101,6 @@ func dockerDetailText(c snapshot.DockerContainer, s styles) string {
 	return strings.TrimRight(b.String(), "\n")
 }
 
-func runningContainers(containers []snapshot.DockerContainer) []snapshot.DockerContainer {
-	return dockerContainersForList(containers, false)
-}
-
 func dockerContainersForList(containers []snapshot.DockerContainer, showAll bool) []snapshot.DockerContainer {
 	if showAll {
 		out := make([]snapshot.DockerContainer, len(containers))

@@ -14,7 +14,3 @@ type probeResultMsg struct {
 }
 
 type tickMsg struct{}
-
-type errMsg struct {
-	err error
-}
