@@ -173,11 +173,15 @@ type Correlation struct {
 	HealthOK      *bool    `json:"health_ok,omitempty"`
 }
 
-// Finding holds an informational inspect finding.
+// Finding holds a diagnostic finding from inspect or doctor.
 type Finding struct {
 	ID       string `json:"id"`
 	Summary  string `json:"summary"`
 	Severity string `json:"severity,omitempty"`
+	Why      string `json:"why,omitempty"`
+	Try      string `json:"try,omitempty"`
+	Category string `json:"category,omitempty"`
+	Rank     int    `json:"rank,omitempty"`
 }
 
 // Skip records a collector that could not run.

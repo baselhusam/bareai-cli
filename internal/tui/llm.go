@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/baselhusam/bareai-cli/internal/probe"
 	"github.com/baselhusam/bareai-cli/internal/snapshot"
 )
 
@@ -76,11 +77,9 @@ func llmDetailText(llm snapshot.LLM) string {
 		fmt.Fprintf(&b, "  Container: %s\n", llm.ContainerName)
 	}
 	if len(llm.Metrics) > 0 {
-		parts := make([]string, 0, len(llm.Metrics))
-		for k, v := range llm.Metrics {
-			parts = append(parts, fmt.Sprintf("%s=%.0f", k, v))
+		if line := probe.MetricsLine(llm.Runtime, llm.Metrics); line != "" {
+			fmt.Fprintf(&b, "  Metrics: %s\n", line)
 		}
-		fmt.Fprintf(&b, "  Metrics: %s\n", strings.Join(parts, ", "))
 	}
 	if llm.Probe != nil {
 		status := "fail"

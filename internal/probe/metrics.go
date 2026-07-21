@@ -7,12 +7,6 @@ import (
 	"strings"
 )
 
-var metricAllowlist = []string{
-	"vllm:num_requests_running",
-	"vllm:gpu_cache_usage_perc",
-	"sglang:num_running_reqs",
-}
-
 // FetchMetrics scrapes known Prometheus metrics from the adapter metrics path.
 func FetchMetrics(ctx context.Context, client *http.Client, baseURL string, adapter Adapter) map[string]float64 {
 	if adapter == nil {

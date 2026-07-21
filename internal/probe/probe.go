@@ -7,20 +7,28 @@ import (
 	"github.com/baselhusam/bareai-cli/internal/snapshot"
 )
 
-// Enrich runs health, model listing, and metrics for a discovered LLM.
-func Enrich(ctx context.Context, client *http.Client, llm *snapshot.LLM, adapter Adapter, withModels bool) {
+// EnrichOptions controls probe enrichment behavior.
+type EnrichOptions struct {
+	ListModels   bool
+	FetchMetrics bool
+}
+
+// Enrich runs health, optional model listing, and metrics for a discovered LLM.
+func Enrich(ctx context.Context, client *http.Client, llm *snapshot.LLM, adapter Adapter, opts EnrichOptions) {
 	if llm == nil || adapter == nil {
 		return
 	}
 	health := adapter.Health(ctx, client, llm.Endpoint)
 	llm.Health = &health
-	if withModels {
+	if opts.ListModels {
 		if models, err := adapter.ListModels(ctx, client, llm.Endpoint); err == nil {
 			llm.Models = models
 		}
 	}
-	if metrics := FetchMetrics(ctx, client, llm.Endpoint, adapter); metrics != nil {
-		llm.Metrics = metrics
+	if opts.FetchMetrics {
+		if metrics := FetchMetrics(ctx, client, llm.Endpoint, adapter); metrics != nil {
+			llm.Metrics = metrics
+		}
 	}
 }
 

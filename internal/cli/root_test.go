@@ -19,6 +19,8 @@ func TestRootCommand(t *testing.T) {
 		"inspect":    false,
 		"probe":      false,
 		"watch":      false,
+		"doctor":     false,
+		"config":     false,
 		"version":    false,
 		"completion": false,
 	}

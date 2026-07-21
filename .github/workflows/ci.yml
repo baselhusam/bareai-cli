@@ -60,6 +60,7 @@ jobs:
           "$BIN" docker --json >/dev/null
           "$BIN" llm --json >/dev/null
           "$BIN" inspect --json >/dev/null
+          "$BIN" doctor --json >/dev/null
           "$BIN" probe --endpoint http://127.0.0.1:59999 --runtime ollama --json >/dev/null
           "$BIN" version --json >/dev/null
           "$BIN" watch >/dev/null

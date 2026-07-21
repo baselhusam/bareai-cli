@@ -13,9 +13,11 @@ import (
 
 // Input holds context for LLM discovery.
 type Input struct {
-	Docker *snapshot.Docker
-	GPUs   []snapshot.GPU
-	Probe  bool
+	Docker       *snapshot.Docker
+	GPUs         []snapshot.GPU
+	Probe        bool
+	ListModels   bool
+	FetchMetrics bool
 }
 
 // candidate is an internal discovery record before verification.
@@ -68,7 +70,10 @@ func Collect(ctx context.Context, in Input) ([]snapshot.LLM, []snapshot.Skip, er
 			llm.Name = displayName(llm.Runtime)
 		}
 		if in.Probe {
-			probe.Enrich(ctx, client, &llm, adapter, true)
+			probe.Enrich(ctx, client, &llm, adapter, probe.EnrichOptions{
+				ListModels:   in.ListModels,
+				FetchMetrics: in.FetchMetrics,
+			})
 		}
 		correlate(&llm, in)
 		out = append(out, llm)

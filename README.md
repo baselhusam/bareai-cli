@@ -2,7 +2,7 @@
 
 CLI and TUI for solo AI engineers inspecting bare-metal AI infrastructure: host resources, GPUs (NVIDIA / AMD / Apple), Docker, and local LLM runtimes (Ollama, vLLM, SGLang, Triton, …).
 
-**Status:** Phase 8 complete — install via Homebrew, winget, APT, and install scripts. See [ROADMAP.md](ROADMAP.md).
+**Status:** Phase 9 complete — doctor, config file, richer metrics, man pages. See [ROADMAP.md](ROADMAP.md).
 
 **Repository:** [github.com/baselhusam/bareai-cli](https://github.com/baselhusam/bareai-cli)
 
@@ -155,7 +155,33 @@ Findings
   [info] llm.multiple_runtimes: 2 LLM runtimes discovered on this host
 ```
 
-Findings are informational only (no mutating suggestions until Phase 9 doctor).
+Findings include ranked diagnostics; use `bareai doctor` for full what/why/try hints (read-only suggestions).
+
+### Doctor
+
+`bareai doctor` runs ranked diagnostics with read-only remediation hints:
+
+```bash
+bareai doctor
+bareai doctor --severity warn
+bareai doctor --json
+```
+
+```text
+[warn] llm.unreachable — Ollama (http://127.0.0.1:11434) is unreachable
+  Why: Health probe failed; endpoint may be down or blocked.
+  Try: curl -s http://127.0.0.1:11434/api/tags  ·  bareai probe --endpoint ...
+```
+
+### Configuration
+
+Optional config file: `~/.config/bareai/config.yaml` (or `%AppData%\\bareai\\config.yaml` on Windows). See [`config.example.yaml`](config.example.yaml).
+
+```bash
+bareai config path
+```
+
+Defaults include probe prompt, TUI refresh interval, discovery ports, and doctor severity filter. CLI flags override config values.
 
 ### Interactive TUI
 
@@ -186,6 +212,8 @@ The TUI reuses the same collectors and probe logic as the CLI; it is a view over
 | `llm`     | Discovered LLM runtimes and models               | Phase 4  |
 | `probe`   | One-hit smoke tests against discovered LLMs      | Phase 4  |
 | `inspect` | Full correlated infrastructure report            | Phase 5  |
+| `doctor`  | Ranked diagnostics with read-only suggestions    | Phase 9  |
+| `config`  | Config path helpers                              | Phase 9  |
 | `watch`   | Live TUI monitoring dashboard                    | Phase 6  |
 
 ### Global flags
@@ -205,6 +233,7 @@ make test
 make test-integration   # subprocess smoke tests (requires built binary)
 make smoke              # Linux/macOS checklist script
 make lint    # requires golangci-lint
+make man     # generate man pages into docs/man/man1/
 make run ARGS="gpu"
 make clean
 ```
@@ -263,6 +292,7 @@ Add to PATH: `.\scripts\install.ps1 -AddToPath`
 ```bash
 curl -1sLf 'https://dl.cloudsmith.io/public/baselhusam/bareai/cfg/setup/deb.sh' | sudo bash
 sudo apt update && sudo apt install bareai
+man bareai-doctor
 ```
 
 ### Manual download

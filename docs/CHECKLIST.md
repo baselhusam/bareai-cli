@@ -52,6 +52,17 @@ Full collector fidelity: NVIDIA/AMD GPUs, unix Docker socket, process + port LLM
 
 **Notes:** Docker Desktop required for container inventory. WSL2-internal Docker engine is not discovered from Windows host unless `DOCKER_HOST` points to it. Load averages are not available via gopsutil on Windows.
 
+## Phase 9 — Manual checks
+
+| Step | Command | Expected |
+|------|---------|----------|
+| Config path | `bareai config path` | Prints resolved config file location |
+| Doctor | `bareai doctor` | Ranked findings with Why/Try hints |
+| Doctor JSON | `bareai doctor --json` | Valid JSON with `findings` array |
+| Custom ports | Set `discovery.ports` in config, run `bareai llm` | Discovers configured endpoint |
+| TUI refresh | `bareai watch --refresh 5s` | Periodic refresh without heavy model re-list |
+| Man pages | `man bareai-doctor` (after `.deb` install) | Man page renders |
+
 ## Automated scripts
 
 ```bash

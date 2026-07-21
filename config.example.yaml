@@ -1,0 +1,21 @@
+defaults:
+  timeout: 10s
+  refresh: 3s
+  no_color: false
+
+probe:
+  prompt: "Hello"
+  model: ""
+
+discovery:
+  ports:
+    - 11434   # ollama
+    - 8000    # vllm
+    - 30000   # sglang
+  endpoints: []
+
+doctor:
+  min_severity: info
+
+output:
+  json_indent: true

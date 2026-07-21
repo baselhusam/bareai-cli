@@ -48,13 +48,20 @@ func overviewText(snap *snapshot.Snapshot, width int) string {
 	b.WriteString("\n")
 
 	if len(snap.Findings) > 0 {
-		fmt.Fprintln(&b, "Findings")
-		for _, f := range snap.Findings {
+		fmt.Fprintln(&b, "Findings (top)")
+		limit := 3
+		if len(snap.Findings) < limit {
+			limit = len(snap.Findings)
+		}
+		for _, f := range snap.Findings[:limit] {
 			severity := f.Severity
 			if severity == "" {
 				severity = "info"
 			}
 			fmt.Fprintf(&b, "  [%s] %s: %s\n", severity, f.ID, f.Summary)
+		}
+		if len(snap.Findings) > limit {
+			fmt.Fprintf(&b, "  … %d more (bareai doctor)\n", len(snap.Findings)-limit)
 		}
 		b.WriteString("\n")
 	}

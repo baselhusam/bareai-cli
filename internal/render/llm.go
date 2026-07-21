@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/baselhusam/bareai-cli/internal/probe"
 	"github.com/baselhusam/bareai-cli/internal/snapshot"
 )
 
@@ -88,12 +89,11 @@ func writeLLMDetail(w io.Writer, llm snapshot.LLM) error {
 		}
 	}
 	if len(llm.Metrics) > 0 {
-		parts := make([]string, 0, len(llm.Metrics))
-		for k, v := range llm.Metrics {
-			parts = append(parts, fmt.Sprintf("%s=%.0f", k, v))
-		}
-		if _, err := fmt.Fprintf(w, "  Metrics: %s\n", strings.Join(parts, ", ")); err != nil {
-			return err
+		line := probe.MetricsLine(llm.Runtime, llm.Metrics)
+		if line != "" {
+			if _, err := fmt.Fprintf(w, "  Metrics: %s\n", line); err != nil {
+				return err
+			}
 		}
 	}
 	return nil

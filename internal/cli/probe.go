@@ -8,6 +8,7 @@ import (
 	dockercollect "github.com/baselhusam/bareai-cli/internal/collect/docker"
 	gpucollect "github.com/baselhusam/bareai-cli/internal/collect/gpu"
 	llmcollect "github.com/baselhusam/bareai-cli/internal/collect/llm"
+	"github.com/baselhusam/bareai-cli/internal/config"
 	"github.com/baselhusam/bareai-cli/internal/probe"
 	"github.com/baselhusam/bareai-cli/internal/render"
 	"github.com/baselhusam/bareai-cli/internal/snapshot"
@@ -24,6 +25,8 @@ var probeCmd = &cobra.Command{
 	Use:   "probe",
 	Short: "Run one-hit smoke tests against discovered LLMs",
 	Long:  "Send a lightweight health or completion request to discovered inference endpoints.",
+	Example: `  bareai probe
+  bareai probe --endpoint http://127.0.0.1:11434 --runtime ollama`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx, cancel := context.WithTimeout(cmd.Context(), opts.Timeout)
 		defer cancel()
@@ -74,9 +77,11 @@ var probeCmd = &cobra.Command{
 			snap.Skipped = append(snap.Skipped, gpuSkips...)
 
 			llms, llmSkips, err := llmcollect.Collect(ctx, llmcollect.Input{
-				Docker: snap.Docker,
-				GPUs:   snap.GPUs,
-				Probe:  true,
+				Docker:       snap.Docker,
+				GPUs:         snap.GPUs,
+				Probe:        true,
+				ListModels:   true,
+				FetchMetrics: true,
 			})
 			if err != nil {
 				return err
@@ -93,8 +98,9 @@ var probeCmd = &cobra.Command{
 }
 
 func init() {
+	def := config.Default()
 	probeCmd.Flags().StringVar(&probeOpts.Endpoint, "endpoint", "", "probe a specific endpoint URL")
 	probeCmd.Flags().StringVar(&probeOpts.Runtime, "runtime", "", "runtime adapter when using --endpoint (ollama|vllm|sglang|triton)")
-	probeCmd.Flags().StringVar(&probeOpts.Model, "model", "", "model name for smoke request")
-	probeCmd.Flags().StringVar(&probeOpts.Prompt, "prompt", "Hello", "prompt text for smoke request")
+	probeCmd.Flags().StringVar(&probeOpts.Model, "model", def.Probe.Model, "model name for smoke request")
+	probeCmd.Flags().StringVar(&probeOpts.Prompt, "prompt", def.Probe.Prompt, "prompt text for smoke request")
 }

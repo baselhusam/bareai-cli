@@ -16,7 +16,8 @@ func NewClient(ctx context.Context) *http.Client {
 	return &http.Client{
 		Timeout: timeoutFromContext(ctx),
 		Transport: &http.Transport{
-			Proxy: http.ProxyFromEnvironment,
+			Proxy:               http.ProxyFromEnvironment,
+			MaxIdleConnsPerHost: 8,
 		},
 	}
 }

@@ -36,10 +36,13 @@ The Release workflow uploads `.deb` artifacts to Cloudsmith after GoReleaser fin
 ## Local dry-run
 
 ```bash
+make man
 make goreleaser-check
 make release-snapshot
 ls dist/
 ```
+
+Man pages are regenerated automatically in the GoReleaser `before` hook; run `make man` locally before cutting a release to verify.
 
 Snapshot builds use version `0.0.0-next` (or similar) and do not publish.
 

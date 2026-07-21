@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 
+	"github.com/baselhusam/bareai-cli/internal/config"
 	"github.com/baselhusam/bareai-cli/internal/tui"
 )
 
@@ -20,6 +21,8 @@ type Options struct {
 
 // Global options populated from persistent flags.
 var opts Options
+
+var appConfig config.Config
 
 // rootCmd is the base command for bareai.
 var rootCmd = &cobra.Command{
@@ -34,19 +37,29 @@ without mutating the system.`,
 		if !term.IsTerminal(int(os.Stdout.Fd())) {
 			return cmd.Help()
 		}
-		return tui.Run(cmd.Context(), tuiOptionsFromCLI(3*time.Second))
+		return tui.Run(cmd.Context(), tuiOptionsFromCLI(appConfig.Defaults.Refresh))
 	},
 }
 
 // Execute runs the root command.
 func Execute() error {
+	if err := config.Init(); err != nil {
+		return fmt.Errorf("load config: %w", err)
+	}
+	appConfig = config.Global()
 	return rootCmd.Execute()
 }
 
+// RootCommand exposes the cobra root for man page generation.
+func RootCommand() *cobra.Command {
+	return rootCmd
+}
+
 func init() {
+	def := config.Default()
 	rootCmd.PersistentFlags().BoolVarP(&opts.JSON, "json", "j", false, "output in JSON format")
-	rootCmd.PersistentFlags().DurationVar(&opts.Timeout, "timeout", 10*time.Second, "timeout for probes and API calls")
-	rootCmd.PersistentFlags().BoolVar(&opts.NoColor, "no-color", false, "disable colored output")
+	rootCmd.PersistentFlags().DurationVar(&opts.Timeout, "timeout", def.Defaults.Timeout, "timeout for probes and API calls")
+	rootCmd.PersistentFlags().BoolVar(&opts.NoColor, "no-color", def.Defaults.NoColor, "disable colored output")
 
 	rootCmd.AddCommand(
 		statusCmd,
@@ -56,12 +69,9 @@ func init() {
 		inspectCmd,
 		probeCmd,
 		watchCmd,
+		doctorCmd,
+		configCmd,
 		versionCmd,
 		completionCmd,
 	)
-}
-
-func stubRun(phase int, name string) error {
-	_, err := fmt.Fprintf(os.Stdout, "bareai %s: not implemented yet (Phase %d)\n", name, phase)
-	return err
 }

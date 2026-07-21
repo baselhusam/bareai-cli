@@ -144,11 +144,11 @@ CLI + TUI for solo AI engineers inspecting bare-metal AI boxes: host, GPUs (NVID
 
 **Goal:** Faster debugging without mutating the system.
 
-- [ ] `bareai doctor` — ranked findings with “what/why/try” (read-only suggestions)
-- [ ] Richer LLM metrics when exporters exist (KV cache, queue, tok/s)
-- [ ] Config file (`~/.config/bareai/config.yaml`) for default probe prompts, ports, refresh
-- [ ] Man pages / better `--help` examples
-- [ ] Performance pass: low overhead on refresh loops
+- [x] `bareai doctor` — ranked findings with “what/why/try” (read-only suggestions)
+- [x] Richer LLM metrics when exporters exist (KV cache, queue, tok/s)
+- [x] Config file (`~/.config/bareai/config.yaml`) for default probe prompts, ports, refresh
+- [x] Man pages / better `--help` examples
+- [x] Performance pass: low overhead on refresh loops
 
 **Exit:** Doctor + config make daily AIOps inspection feel complete for one box.
 

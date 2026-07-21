@@ -14,11 +14,13 @@ var inspectCmd = &cobra.Command{
 	Use:   "inspect",
 	Short: "Show full correlated infrastructure report",
 	Long:  "Aggregate host, GPU, Docker, and LLM data into one correlated report.",
+	Example: `  bareai inspect
+  bareai inspect --json`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx, cancel := context.WithTimeout(cmd.Context(), opts.Timeout)
 		defer cancel()
 
-		snap := collect.SnapshotWithOptions(ctx, collect.Options{ProbeLLM: true})
+		snap := collect.SnapshotWithOptions(ctx, collect.FullOptions())
 		inspect.Enrich(snap)
 
 		if opts.JSON {

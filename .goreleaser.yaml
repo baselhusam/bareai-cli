@@ -5,6 +5,7 @@ project_name: bareai
 before:
   hooks:
     - go mod tidy
+    - go run docs/man/gen.go
 
 builds:
   - id: bareai
@@ -84,6 +85,11 @@ nfpms:
     bindir: /usr/bin
     section: utils
     priority: optional
+    contents:
+      - src: docs/man/man1/*.1
+        dst: /usr/share/man/man1
+        file_info:
+          mode: 0644
 
 brews:
   - name: bareai

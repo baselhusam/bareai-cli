@@ -138,7 +138,7 @@ func newModel(ctx context.Context, opts Options) Model {
 func (m *Model) Init() tea.Cmd {
 	return tea.Batch(
 		m.spinner.Tick,
-		collectSnapshotCmd(m.ctx, m.opts.Timeout, m.gen),
+		collectSnapshotCmd(m.ctx, m.opts.Timeout, m.gen, true),
 		tickCmd(m.opts.Refresh),
 	)
 }
@@ -158,7 +158,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		if key == "r" {
 			m.startRefresh()
-			return m, collectSnapshotCmd(m.ctx, m.opts.Timeout, m.gen)
+			return m, collectSnapshotCmd(m.ctx, m.opts.Timeout, m.gen, true)
 		}
 		if key == "p" && (m.tab == TabLLM || m.tab == TabProbe) {
 			idx := m.selectedLLMIndex()
@@ -210,7 +210,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tickMsg:
 		if !m.loading {
 			m.startRefresh()
-			cmds = append(cmds, collectSnapshotCmd(m.ctx, m.opts.Timeout, m.gen))
+			cmds = append(cmds, collectSnapshotCmd(m.ctx, m.opts.Timeout, m.gen, false))
 		}
 		cmds = append(cmds, tickCmd(m.opts.Refresh))
 		return m, tea.Batch(cmds...)
