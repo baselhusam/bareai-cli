@@ -50,6 +50,7 @@ func TestAllCommandsExitZero(t *testing.T) {
 		{"docker", "--json"},
 		{"llm", "--json"},
 		{"inspect", "--json"},
+		{"version", "--json"},
 		{"probe", "--endpoint", "http://127.0.0.1:59999", "--runtime", "ollama", "--json"},
 	}
 	for _, args := range commands {

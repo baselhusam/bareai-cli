@@ -1,0 +1,66 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  goreleaser:
+    name: GoReleaser
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25"
+          cache: true
+
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          version: "~> v2"
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.HOMEBREW_TAP_GITHUB_TOKEN }}
+
+      - name: Upload deb packages to Cloudsmith
+        env:
+          CLOUDSMITH_API_KEY: ${{ secrets.CLOUDSMITH_API_KEY }}
+        run: |
+          pip install cloudsmith-cli
+          shopt -s nullglob
+          debs=(dist/*.deb)
+          if [ ${#debs[@]} -eq 0 ]; then
+            echo "No .deb packages found in dist/"
+            exit 1
+          fi
+          for file in "${debs[@]}"; do
+            echo "Uploading $file"
+            cloudsmith push deb "baselhusam/bareai/any-distro/any-version" "$file" \
+              --republish --no-wait-for-sync
+          done
+
+  winget:
+    name: winget PR
+    needs: goreleaser
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Submit winget manifest PR
+        uses: winget-releaser/winget-releaser@v2
+        with:
+          identifier: baselhusam.bareai
+          installers-regex: 'bareai_.*_windows_(amd64|arm64)\.zip'
+          token: ${{ secrets.WINGET_TOKEN }}

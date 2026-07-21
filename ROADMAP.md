@@ -128,13 +128,13 @@ CLI + TUI for solo AI engineers inspecting bare-metal AI boxes: host, GPUs (NVID
 
 **Goal:** Install via brew, Windows package managers, and APT.
 
-- [ ] GoReleaser: multi-arch binaries (linux/darwin/windows, amd64/arm64)
-- [ ] Homebrew tap formula
-- [ ] winget manifest (Scoop optional)
-- [ ] `.deb` via nFPM + APT repo (Cloudsmith, GemFury, or self-hosted)
-- [ ] Optional `curl | sh` / PowerShell install scripts from GitHub Releases
-- [ ] Shell completions (bash/zsh/fish/powershell)
-- [ ] Signed checksums on releases
+- [x] GoReleaser: multi-arch binaries (linux/darwin/windows, amd64/arm64)
+- [x] Homebrew tap formula
+- [x] winget manifest (Scoop optional)
+- [x] `.deb` via nFPM + APT repo (Cloudsmith, GemFury, or self-hosted)
+- [x] Optional `curl | sh` / PowerShell install scripts from GitHub Releases
+- [x] Shell completions (bash/zsh/fish/powershell)
+- [x] Signed checksums on releases
 
 **Exit:** Documented one-liner installs for macOS, Windows, and Debian/Ubuntu.
 

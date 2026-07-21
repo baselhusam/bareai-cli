@@ -1,0 +1,23 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.defaultLocale.1.6.0.schema.json
+
+PackageIdentifier: baselhusam.bareai
+PackageVersion: 0.1.0
+PackageLocale: en-US
+Publisher: baselhusam
+PackageName: bareai
+License: MIT
+ShortDescription: Inspect bare-metal AI infrastructure
+Description: |
+  bareai is a CLI and TUI for solo AI engineers doing AIOps on a single bare-metal box.
+  Inspect host resources, GPUs, Docker, and local LLM runtimes without mutating the system.
+Moniker: bareai
+Tags:
+  - ai
+  - cli
+  - docker
+  - gpu
+  - llm
+Commands:
+  - bareai
+ManifestType: defaultLocale
+ManifestVersion: 1.6.0

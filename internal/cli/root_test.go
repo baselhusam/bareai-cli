@@ -12,13 +12,15 @@ func TestRootCommand(t *testing.T) {
 	}
 
 	expected := map[string]bool{
-		"status":  false,
-		"gpu":     false,
-		"llm":     false,
-		"docker":  false,
-		"inspect": false,
-		"probe":   false,
-		"watch":   false,
+		"status":     false,
+		"gpu":        false,
+		"llm":        false,
+		"docker":     false,
+		"inspect":    false,
+		"probe":      false,
+		"watch":      false,
+		"version":    false,
+		"completion": false,
 	}
 
 	for _, cmd := range rootCmd.Commands() {

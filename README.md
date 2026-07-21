@@ -2,13 +2,13 @@
 
 CLI and TUI for solo AI engineers inspecting bare-metal AI infrastructure: host resources, GPUs (NVIDIA / AMD / Apple), Docker, and local LLM runtimes (Ollama, vLLM, SGLang, Triton, …).
 
-**Status:** Phase 7 complete — cross-platform hardening with full capability matrix. See [ROADMAP.md](ROADMAP.md).
+**Status:** Phase 8 complete — install via Homebrew, winget, APT, and install scripts. See [ROADMAP.md](ROADMAP.md).
 
 **Repository:** [github.com/baselhusam/bareai-cli](https://github.com/baselhusam/bareai-cli)
 
 ## Requirements
 
-- Go 1.23+
+- Go 1.25+ (to build from source)
 
 ## Build
 
@@ -211,6 +211,13 @@ make clean
 
 Cross-platform manual checklist: [docs/CHECKLIST.md](docs/CHECKLIST.md)
 
+Release and packaging: [docs/RELEASE.md](docs/RELEASE.md)
+
+```bash
+make goreleaser-check
+make release-snapshot
+```
+
 Install `golangci-lint`:
 
 ```bash
@@ -218,15 +225,69 @@ brew install golangci-lint
 # or see https://golangci-lint.run/welcome/install/
 ```
 
-## Install (coming soon)
+## Install
 
-Package distribution is planned for Phase 8:
+### macOS / Linux (install script)
 
-- Homebrew (`brew install …`)
-- APT (`apt install …`)
-- winget (Windows)
+```bash
+curl -fsSL https://raw.githubusercontent.com/baselhusam/bareai-cli/main/scripts/install.sh | bash
+```
 
-For now, build from source.
+Pin a version: `VERSION=v0.1.0 curl -fsSL ... | bash`
+
+### Homebrew
+
+```bash
+brew tap baselhusam/tap
+brew install bareai
+```
+
+### Windows
+
+**winget:**
+
+```powershell
+winget install baselhusam.bareai
+```
+
+**PowerShell install script:**
+
+```powershell
+irm https://raw.githubusercontent.com/baselhusam/bareai-cli/main/scripts/install.ps1 | iex
+```
+
+Add to PATH: `.\scripts\install.ps1 -AddToPath`
+
+### Debian / Ubuntu (Cloudsmith APT)
+
+```bash
+curl -1sLf 'https://dl.cloudsmith.io/public/baselhusam/bareai/cfg/setup/deb.sh' | sudo bash
+sudo apt update && sudo apt install bareai
+```
+
+### Manual download
+
+Download archives and `checksums.txt` from [GitHub Releases](https://github.com/baselhusam/bareai-cli/releases). Verify SHA256 before installing.
+
+### Shell completions
+
+```bash
+bareai completion bash >> ~/.bashrc
+bareai completion zsh >> ~/.zshrc
+bareai completion fish > ~/.config/fish/completions/bareai.fish
+bareai completion powershell >> $PROFILE
+```
+
+### Build from source
+
+```bash
+git clone https://github.com/baselhusam/bareai-cli.git
+cd bareai-cli
+make build
+./bareai version
+```
+
+Release process for maintainers: [docs/RELEASE.md](docs/RELEASE.md).
 
 ## License
 

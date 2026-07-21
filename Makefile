@@ -1,4 +1,4 @@
-.PHONY: all build test test-integration smoke smoke-windows lint run clean
+.PHONY: all build test test-integration smoke smoke-windows lint run clean release-snapshot goreleaser-check
 
 BINARY := bareai
 CMD := ./cmd/bareai
@@ -26,5 +26,12 @@ lint:
 run:
 	go run $(CMD) -- $(ARGS)
 
+release-snapshot:
+	goreleaser release --snapshot --clean
+
+goreleaser-check:
+	goreleaser check
+
 clean:
 	rm -f $(BINARY) $(BINARY).exe
+	rm -rf dist/

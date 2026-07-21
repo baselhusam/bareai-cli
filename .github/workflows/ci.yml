@@ -61,6 +61,7 @@ jobs:
           "$BIN" llm --json >/dev/null
           "$BIN" inspect --json >/dev/null
           "$BIN" probe --endpoint http://127.0.0.1:59999 --runtime ollama --json >/dev/null
+          "$BIN" version --json >/dev/null
           "$BIN" watch >/dev/null
 
   lint:
@@ -78,3 +79,20 @@ jobs:
         uses: golangci/golangci-lint-action@v7
         with:
           version: v2.12.2
+
+  goreleaser:
+    name: GoReleaser check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.25"
+          cache: true
+
+      - name: Install GoReleaser
+        run: go install github.com/goreleaser/goreleaser/v2@v2.8.1
+
+      - name: Check config
+        run: goreleaser check

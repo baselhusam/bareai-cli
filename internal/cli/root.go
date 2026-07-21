@@ -56,6 +56,8 @@ func init() {
 		inspectCmd,
 		probeCmd,
 		watchCmd,
+		versionCmd,
+		completionCmd,
 	)
 }
 

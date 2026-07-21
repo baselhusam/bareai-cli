@@ -1,0 +1,101 @@
+version: 2
+
+project_name: bareai
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: bareai
+    main: ./cmd/bareai
+    binary: bareai
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+      - -X github.com/baselhusam/bareai-cli/internal/version.Version={{.Version}}
+      - -X github.com/baselhusam/bareai-cli/internal/version.Commit={{.Commit}}
+      - -X github.com/baselhusam/bareai-cli/internal/version.Date={{.Date}}
+
+archives:
+  - id: default
+    formats:
+      - tar.gz
+    format_overrides:
+      - goos: windows
+        formats:
+          - zip
+    name_template: "bareai_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files:
+      - LICENSE
+      - README.md
+
+checksum:
+  name_template: checksums.txt
+  algorithm: sha256
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  use: github
+
+release:
+  github:
+    owner: baselhusam
+    name: bareai-cli
+  footer: |
+    ## Install
+
+    **macOS / Linux (script):**
+    ```bash
+    curl -fsSL https://raw.githubusercontent.com/baselhusam/bareai-cli/main/scripts/install.sh | bash
+    ```
+
+    **Windows (PowerShell):**
+    ```powershell
+    irm https://raw.githubusercontent.com/baselhusam/bareai-cli/main/scripts/install.ps1 | iex
+    ```
+
+    **Homebrew:** `brew tap baselhusam/tap && brew install bareai`
+
+    **Debian/Ubuntu:** See [Cloudsmith APT setup](https://github.com/baselhusam/bareai-cli#debian--ubuntu).
+
+    **winget:** `winget install baselhusam.bareai`
+
+nfpms:
+  - id: bareai
+    package_name: bareai
+    vendor: bareai
+    homepage: https://github.com/baselhusam/bareai-cli
+    maintainer: Basel Husam
+    description: CLI and TUI for inspecting bare-metal AI infrastructure
+    license: MIT
+    formats:
+      - deb
+    bindir: /usr/bin
+    section: utils
+    priority: optional
+
+brews:
+  - name: bareai
+    homepage: https://github.com/baselhusam/bareai-cli
+    description: CLI and TUI for inspecting bare-metal AI infrastructure
+    license: MIT
+    repository:
+      owner: baselhusam
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    commit_author:
+      name: goreleaser
+      email: goreleaser@noreply.github.com
+    test: |
+      system "#{bin}/bareai version"
