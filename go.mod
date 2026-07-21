@@ -1,6 +1,6 @@
 module github.com/baselhusam/bareai-cli
 
-go 1.26.5
+go 1.24.0
 
 require (
 	github.com/shirou/gopsutil/v4 v4.26.6

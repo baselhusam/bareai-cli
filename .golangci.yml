@@ -1,7 +1,8 @@
+version: "2"
+
 run:
-  timeout: 5m
-  tests: true
   modules-download-mode: readonly
+  tests: true
 
 linters:
   enable:
@@ -9,3 +10,22 @@ linters:
     - govet
     - staticcheck
     - unused
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+
+formatters:
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
