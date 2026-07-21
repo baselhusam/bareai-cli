@@ -8,8 +8,9 @@ type Snapshot struct {
 	Host        *Host     `json:"host,omitempty"`
 	GPUs        []GPU     `json:"gpus,omitempty"`
 	Docker      *Docker   `json:"docker,omitempty"`
-	LLMs        []LLM     `json:"llms,omitempty"`
-	Findings    []Finding `json:"findings,omitempty"`
+	LLMs          []LLM         `json:"llms,omitempty"`
+	Correlations  []Correlation `json:"correlations,omitempty"`
+	Findings      []Finding     `json:"findings,omitempty"`
 	Skipped     []Skip    `json:"skipped,omitempty"`
 }
 
@@ -159,10 +160,24 @@ type ProbeResult struct {
 	Error     string `json:"error,omitempty"`
 }
 
-// Finding is filled in Phase 9.
+// Correlation links an LLM endpoint to container, process, and GPU resources.
+type Correlation struct {
+	Endpoint      string   `json:"endpoint"`
+	Runtime       string   `json:"runtime"`
+	ContainerName string   `json:"container_name,omitempty"`
+	ContainerID   string   `json:"container_id,omitempty"`
+	PID           int      `json:"pid,omitempty"`
+	GPUIndex      *int     `json:"gpu_index,omitempty"`
+	VRAMBytes     uint64   `json:"vram_bytes,omitempty"`
+	Models        []string `json:"models,omitempty"`
+	HealthOK      *bool    `json:"health_ok,omitempty"`
+}
+
+// Finding holds an informational inspect finding.
 type Finding struct {
-	ID      string `json:"id"`
-	Summary string `json:"summary"`
+	ID       string `json:"id"`
+	Summary  string `json:"summary"`
+	Severity string `json:"severity,omitempty"`
 }
 
 // Skip records a collector that could not run.

@@ -2,7 +2,7 @@
 
 CLI and TUI for solo AI engineers inspecting bare-metal AI infrastructure: host resources, GPUs (NVIDIA / AMD / Apple), Docker, and local LLM runtimes (Ollama, vLLM, SGLang, Triton, …).
 
-**Status:** Phase 4 complete — `bareai llm` and `bareai probe` discover and smoke-test local inference servers (Ollama, vLLM, SGLang, Triton). See [ROADMAP.md](ROADMAP.md).
+**Status:** Phase 5 complete — `bareai inspect` aggregates host, GPU, Docker, and LLM into one correlated report with informational findings. See [ROADMAP.md](ROADMAP.md).
 
 **Repository:** [github.com/baselhusam/bareai-cli](https://github.com/baselhusam/bareai-cli)
 
@@ -34,6 +34,8 @@ go build -o bareai ./cmd/bareai
 ./bareai probe
 ./bareai probe --endpoint http://127.0.0.1:11434 --runtime ollama
 ./bareai probe --json
+./bareai inspect
+./bareai inspect --json
 ```
 
 ### Example
@@ -113,16 +115,38 @@ vLLM  http://127.0.0.1:8000  (process pid 1234)
 
 Probe flags: `--endpoint`, `--runtime`, `--model`, `--prompt`. Probe failures are reported as results; the command exits `0`.
 
+### Inspect
+
+`bareai inspect` is the full correlated report: overview, correlation table (endpoint → container → PID → GPU → VRAM), GPU/LLM/Docker sections, and informational findings. Human output adapts to terminal width (`COLUMNS` or TTY size); `--json` includes `correlations` and `findings` arrays.
+
+```text
+$ bareai inspect
+bareai inspect
+Collected: 2026-07-22T12:00:00Z
+
+Overview
+  Host: ai-box   GPUs: 1   Docker: 2 running   LLMs: 2
+
+Correlation
+  ENDPOINT                      RUNTIME  CONTAINER  PID   GPU  VRAM     MODELS
+  http://127.0.0.1:11434        ollama   ollama     100   0    2.0 GiB  llama3.2
+
+Findings
+  [info] llm.multiple_runtimes: 2 LLM runtimes discovered on this host
+```
+
+Findings are informational only (no mutating suggestions until Phase 9 doctor).
+
 ### Commands
 
 | Command   | Description                                      | Status   |
 |-----------|--------------------------------------------------|----------|
-| `status`  | Host and infrastructure summary                  | Phase 1–4 |
+| `status`  | Host and infrastructure summary                  | Phase 1–5 |
 | `gpu`     | GPU and accelerator details                      | Phase 2  |
 | `docker`  | Docker containers, images, and volumes           | Phase 3  |
 | `llm`     | Discovered LLM runtimes and models               | Phase 4  |
 | `probe`   | One-hit smoke tests against discovered LLMs      | Phase 4  |
-| `inspect` | Full correlated infrastructure report            | stub     |
+| `inspect` | Full correlated infrastructure report            | Phase 5  |
 | `watch`   | Live TUI monitoring dashboard                    | stub     |
 
 ### Global flags

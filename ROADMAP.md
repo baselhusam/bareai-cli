@@ -85,10 +85,10 @@ CLI + TUI for solo AI engineers inspecting bare-metal AI boxes: host, GPUs (NVID
 
 **Goal:** One full picture for “what is this box doing?”
 
-- [ ] `bareai inspect` aggregates host + GPU + Docker + LLM into one report
-- [ ] Correlation table: endpoint → container → PID → GPU index → VRAM
-- [ ] Human layout optimized for SSH (width-aware); full fidelity in `--json`
-- [ ] Optional light findings (informational only): multiple heavy models, no GPU runtime, unreachable endpoint
+- [x] `bareai inspect` aggregates host + GPU + Docker + LLM into one report
+- [x] Correlation table: endpoint → container → PID → GPU index → VRAM
+- [x] Human layout optimized for SSH (width-aware); full fidelity in `--json`
+- [x] Optional light findings (informational only): multiple heavy models, no GPU runtime, unreachable endpoint
 
 **Exit:** Single command answers host/GPU/containers/models for a solo engineer’s box.
 
