@@ -1,0 +1,39 @@
+---
+description: bareai product vision, persona, and non-negotiables
+alwaysApply: true
+---
+
+# bareai
+
+CLI + TUI for solo AI engineers doing AIOps on one bare-metal box.
+
+## Product
+
+- **Name:** `bareai` (binary / package name)
+- **Persona:** solo engineer on a single machine (SSH / local)
+- **UX:** kubectl-like subcommands **and** interactive TUI (Bubble Tea)
+- **Mode:** inspect / probe only — no mutate (no stop/restart/deploy yet)
+- **Allowed probes:** status reads, discovery, health checks, one-hit LLM smoke tests
+- **Platforms:** macOS, Linux, Windows
+- **GPUs:** NVIDIA, AMD, Apple Silicon (degrade gracefully when absent)
+- **Runtimes:** Ollama, vLLM, SGLang, Triton, and similar via discovery + HTTP probes
+- **Also:** host CPU/RAM/disk, Docker images/containers/volumes, correlated snapshot
+
+## Stack
+
+- **Language:** Go
+- **CLI:** Cobra (or Fang) for commands
+- **TUI:** Charm (Bubble Tea + Bubbles + Lip Gloss)
+- **Release:** GoReleaser → Homebrew, winget, `.deb` + APT repo (Cloudsmith/Fury)
+
+## Principles
+
+1. Degrade, don't die — missing GPU/Docker/LLM still useful
+2. Correlate — join host ↔ GPU ↔ container ↔ model/endpoint
+3. Machine-readable — every command supports `--json` for scripts/agents
+4. Read-mostly — no mutating Docker/runtime ops in current phases
+5. Single static binary — no runtime Python/Node dependency
+
+## Out of scope (for now)
+
+Multi-host fleet, mutating ops, Kubernetes-first workflows, official distro packages beyond our own APT/brew/winget.

@@ -1,0 +1,48 @@
+---
+description: bareai collector architecture and package layout
+alwaysApply: true
+---
+
+# Architecture
+
+## Snapshot model
+
+Collectors produce partial data → aggregator builds one `Snapshot` → CLI/TUI/JSON render the same model.
+
+```
+cmd/bareai/          # main entry
+internal/
+  snapshot/          # shared types + aggregator
+  collect/
+    host/            # CPU, RAM, disk, load, OS
+    gpu/             # NVIDIA / AMD / Apple adapters
+    docker/          # Engine API: containers, images, volumes
+    llm/             # discover + probe runtimes
+  probe/             # HTTP health, /v1/models, one-hit chat/completions
+  tui/               # Bubble Tea app (watch / browse)
+  render/            # tables, human output
+  doctor/            # optional findings (later phases)
+```
+
+## Collectors
+
+- Each collector is optional and returns `(data, err)`; aggregator records skips
+- GPU: NVML / nvidia-smi, ROCm, Apple Metal/sys — never hard-require one vendor
+- LLM discovery: process + port + Docker name/image heuristics + HTTP probes
+- Correlation: PID ↔ container ↔ GPU index ↔ endpoint URL
+
+## Command surface (target)
+
+```
+bareai                  # launch TUI (default) or show help — decide in implementation
+bareai status
+bareai gpu
+bareai llm
+bareai docker
+bareai inspect
+bareai probe            # one-hit smoke test against discovered LLMs
+bareai watch            # live TUI monitoring
+bareai --json <cmd>
+```
+
+Prefer shared collector code; commands and TUI must not re-implement discovery.

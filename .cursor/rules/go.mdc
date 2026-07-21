@@ -1,0 +1,17 @@
+---
+description: Go coding conventions for bareai
+globs: "**/*.go"
+alwaysApply: false
+---
+
+# Go conventions
+
+- Module path and binary name: `bareai`
+- Prefer stdlib; add deps only when they clearly earn their keep
+- CLI: Cobra; TUI: Bubble Tea + Bubbles + Lip Gloss
+- Errors: wrap with `%w`; user-facing messages via CLI layer, not deep collectors
+- Collectors: context-aware (`context.Context`), bounded timeouts for HTTP/Docker
+- No panic for expected missing tools (no Docker, no NVML, etc.)
+- Support `--json` on inspect commands via shared encoder of `Snapshot` types
+- Cross-compile friendly: gate OS-specific code with build tags (`//go:build linux`, etc.)
+- Tests: table-driven unit tests for parsers/probes; integration tests optional behind tags
