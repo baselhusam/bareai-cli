@@ -5,7 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>bareai — inspect your AI box</title>
   <meta name="description" content="CLI + TUI for solo AI engineers inspecting bare-metal AI infrastructure: host, GPUs, Docker, and local LLM runtimes — correlated, read-only, scriptable.">
-  <meta name="theme-color" content="#0b0d08">
+  <meta name="theme-color" content="#0b0d08" id="theme-color">
+  <script>
+    (function () {
+      var stored = localStorage.getItem('bareai-theme');
+      var theme = stored || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+      document.documentElement.dataset.theme = theme;
+      document.getElementById('theme-color').content = theme === 'light' ? '#eef0e6' : '#0b0d08';
+    })();
+  </script>
   <link rel="icon" href="assets/favicon-32.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="assets/app-icon.svg">
   <meta property="og:title" content="bareai">
@@ -30,12 +38,17 @@
           <a href="#install">Install</a>
           <a href="#what">What it does</a>
           <a href="https://github.com/baselhusam/bareai-cli">GitHub</a>
+          <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Switch to light theme">
+            <span class="theme-toggle-label">Theme</span>
+            <span class="theme-toggle-icon" aria-hidden="true"></span>
+          </button>
         </nav>
       </div>
 
       <div class="hero-copy">
         <a class="hero-brand reveal reveal-d2" href="./" aria-label="bareai home">
-          <img src="assets/logo-horizontal.svg" alt="bareai" width="320" height="85">
+          <img class="logo-dark" src="assets/logo-horizontal.svg" alt="bareai" width="320" height="85">
+          <img class="logo-light" src="assets/logo-horizontal-light.svg" alt="bareai" width="320" height="85">
         </a>
         <h1 class="reveal reveal-d3">See what your AI box is doing.</h1>
         <p class="lede reveal reveal-d3">
@@ -199,6 +212,24 @@ sudo apt update && sudo apt install bareai</pre>
 
   <script>
     (function () {
+      var root = document.documentElement;
+      var themeMeta = document.getElementById('theme-color');
+      var themeBtn = document.getElementById('theme-toggle');
+
+      function applyTheme(theme) {
+        root.dataset.theme = theme;
+        themeMeta.content = theme === 'light' ? '#eef0e6' : '#0b0d08';
+        themeBtn.setAttribute('aria-label', theme === 'light' ? 'Switch to dark theme' : 'Switch to light theme');
+        themeBtn.dataset.theme = theme;
+        localStorage.setItem('bareai-theme', theme);
+      }
+
+      themeBtn.addEventListener('click', function () {
+        applyTheme(root.dataset.theme === 'light' ? 'dark' : 'light');
+      });
+
+      applyTheme(root.dataset.theme || 'dark');
+
       var tabs = Array.prototype.slice.call(document.querySelectorAll('.install-tabs [role="tab"]'));
       var panels = Array.prototype.slice.call(document.querySelectorAll('.install-panel'));
 
