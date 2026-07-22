@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="96" viewBox="0 0 360 96" fill="none">
+  
+  <g transform="translate(8,16) scale(0.89)">
+  <rect x="10" y="14" width="52" height="8" rx="4" fill="#12140f"></rect>
+  <rect x="10" y="28" width="40" height="8" rx="4" fill="#4a8f16"></rect>
+  <rect x="10" y="42" width="46" height="8" rx="4" fill="#5c8a2e"></rect>
+  <rect x="10" y="56" width="30" height="8" rx="4" fill="#8fae6e"></rect>
+  </g>
+  <text x="96" y="62" font-family="&#39;Space Grotesk&#39;,&#39;Segoe UI&#39;,Arial,sans-serif" font-size="46" font-weight="700" letter-spacing="-1.4" fill="#12140f">bare<tspan fill="#4a8f16">ai</tspan></text>
+</svg>

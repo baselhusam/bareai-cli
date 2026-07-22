@@ -1,15 +1,43 @@
-# bareai
+<p align="center">
+  <img src="branding/readme-header.svg" alt="bareai — a read-only CLI + TUI for solo AI engineers on bare metal" width="100%">
+</p>
 
-**CLI + TUI for solo AI engineers inspecting bare-metal AI infrastructure.**
+<p align="center">
+  <a href="https://github.com/baselhusam/bareai-cli/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/baselhusam/bareai-cli/ci.yml?branch=main&style=flat-square&label=CI&logo=github&logoColor=eef0e6&labelColor=0b0d08&color=8bd450" alt="CI"></a>
+  <a href="https://github.com/baselhusam/bareai-cli/releases/latest"><img src="https://img.shields.io/github/v/release/baselhusam/bareai-cli?style=flat-square&logo=github&logoColor=eef0e6&labelColor=0b0d08&color=8bd450" alt="Release"></a>
+  <a href="https://pkg.go.dev/github.com/baselhusam/bareai-cli"><img src="https://img.shields.io/badge/Go-1.25+-8bd450?style=flat-square&logo=go&logoColor=eef0e6&labelColor=0b0d08" alt="Go 1.25+"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-8bd450?style=flat-square&labelColor=0b0d08" alt="License: MIT"></a>
+  <img src="https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Windows-5c8a2e?style=flat-square&labelColor=0b0d08" alt="Platforms">
+  <img src="https://img.shields.io/badge/mode-inspect%20%2F%20probe%20only-3d5a20?style=flat-square&labelColor=0b0d08" alt="Read-only">
+</p>
 
-`bareai` answers one question on a single machine: *what is this box doing right now?* It collects host resources, GPUs, Docker, and local LLM runtimes (Ollama, vLLM, SGLang, Triton, …), correlates them, and presents the result as human tables, JSON, or a live terminal dashboard.
+<p align="center">
+  <strong>CLI + TUI for solo AI engineers inspecting bare-metal AI infrastructure.</strong><br>
+  <sub>Host · GPU · Docker · LLM runtimes — correlated, read-only, scriptable.</sub>
+</p>
 
-**Mode:** inspect / probe only — no stop, restart, deploy, or other mutating operations.  
-**Persona:** one engineer, one machine (SSH or local).  
-**Platforms:** Linux, macOS, Windows.
+<p align="center">
+  <a href="#quick-start">Quick start</a> ·
+  <a href="#installation">Install</a> ·
+  <a href="#commands">Commands</a> ·
+  <a href="#interactive-tui">TUI</a> ·
+  <a href="ROADMAP.md">Roadmap</a> ·
+  <a href="branding/">Branding</a>
+</p>
 
-**Repository:** [github.com/baselhusam/bareai-cli](https://github.com/baselhusam/bareai-cli)  
-**Roadmap:** [ROADMAP.md](ROADMAP.md)
+---
+
+`bareai` answers one question on a single machine: *what is this box doing right now?*
+
+It collects host resources, GPUs, Docker, and local LLM runtimes (Ollama, vLLM, SGLang, Triton, …), correlates them, and presents the result as human tables, JSON, or a live terminal dashboard.
+
+| | |
+|---|---|
+| **Mode** | Inspect / probe only — no stop, restart, deploy, or other mutating ops |
+| **Persona** | One engineer, one machine (SSH or local) |
+| **Platforms** | Linux, macOS, Windows |
+| **GPUs** | NVIDIA, AMD, Apple Silicon (degrades gracefully when absent) |
+| **Output** | CLI tables · live TUI · `--json` for scripts and agents |
 
 ---
 
@@ -39,6 +67,7 @@
 - [Environment variables](#environment-variables)
 - [Common workflows](#common-workflows)
 - [Development](#development)
+- [Branding](#branding)
 - [License](#license)
 
 ---
@@ -64,6 +93,21 @@
    - Machine-readable JSON (`--json` on any inspect command)
 
 When a collector cannot run (no Docker, no GPU driver, permission denied), the command still exits **0** and records a `skipped` entry explaining why.
+
+```
+┌─────────────┐   ┌─────────────┐   ┌─────────────┐   ┌─────────────┐
+│    Host     │   │     GPU     │   │   Docker    │   │     LLM     │
+└──────┬──────┘   └──────┬──────┘   └──────┬──────┘   └──────┬──────┘
+       │                 │                 │                 │
+       └─────────────────┴────────┬────────┴─────────────────┘
+                                  ▼
+                         ┌────────────────┐
+                         │    Snapshot    │
+                         └───────┬────────┘
+              ┌──────────────────┼──────────────────┐
+              ▼                  ▼                  ▼
+           CLI / tables      Live TUI           --json
+```
 
 ---
 
@@ -645,11 +689,11 @@ Every inspect command supports `--json` (`-j`). Output is a single **`Snapshot`*
 ```json
 {
   "collected_at": "2026-07-22T12:00:00Z",
-  "host": { "hostname": "...", "mem_total_bytes": 0, "load1": 0.0, ... },
-  "gpus": [{ "index": 0, "vendor": "nvidia", "utilization_pct": 45.0, "processes": [...] }],
-  "docker": { "available": true, "containers": [...], "images": [...], "volumes": [...] },
-  "llms": [{ "runtime": "ollama", "endpoint": "...", "health": { "ok": true, "latency_ms": 42 }, ... }],
-  "correlations": [{ "endpoint": "...", "pid": 123, "gpu_index": 0, "vram_bytes": 0, ... }],
+  "host": { "hostname": "...", "mem_total_bytes": 0, "load1": 0.0 },
+  "gpus": [{ "index": 0, "vendor": "nvidia", "utilization_pct": 45.0, "processes": [] }],
+  "docker": { "available": true, "containers": [], "images": [], "volumes": [] },
+  "llms": [{ "runtime": "ollama", "endpoint": "...", "health": { "ok": true, "latency_ms": 42 } }],
+  "correlations": [{ "endpoint": "...", "pid": 123, "gpu_index": 0, "vram_bytes": 0 }],
   "findings": [{ "id": "...", "severity": "info", "summary": "...", "why": "...", "try": "..." }],
   "skipped": [{ "component": "docker", "reason": "..." }]
 }
@@ -796,6 +840,43 @@ brew install golangci-lint
 ```
 
 Architecture overview: [`.cursor/rules/architecture.mdc`](.cursor/rules/architecture.mdc) (collectors → snapshot → CLI/TUI/JSON).
+
+---
+
+## Branding
+
+Assets live in [`branding/`](branding/). Preview locally by opening [`branding/index.html`](branding/index.html).
+
+<p align="center">
+  <img src="branding/logo-horizontal.svg" alt="bareai logo" width="280">
+</p>
+
+### Color palette
+
+| Token | Hex | Swatch | Use |
+|-------|-----|--------|-----|
+| Ink | `#0b0d08` | ![#0b0d08](https://img.shields.io/badge/-0b0d08-0b0d08?style=flat-square) | Background / deep canvas |
+| Surface | `#12140f` | ![#12140f](https://img.shields.io/badge/-12140f-12140f?style=flat-square) | Page / panel background |
+| Panel | `#181b13` | ![#181b13](https://img.shields.io/badge/-181b13-181b13?style=flat-square) | Cards / elevated surfaces |
+| Border | `#2a2f22` | ![#2a2f22](https://img.shields.io/badge/-2a2f22-2a2f22?style=flat-square) | Dividers / outlines |
+| Text | `#eef0e6` | ![#eef0e6](https://img.shields.io/badge/-eef0e6-eef0e6?style=flat-square) | Primary text / logo bars |
+| Muted | `#9aa48a` | ![#9aa48a](https://img.shields.io/badge/-9aa48a-9aa48a?style=flat-square) | Secondary / subtitle text |
+| Accent | `#8bd450` | ![#8bd450](https://img.shields.io/badge/-8bd450-8bd450?style=flat-square) | Brand green (`ai` mark) |
+| Accent mid | `#5c8a2e` | ![#5c8a2e](https://img.shields.io/badge/-5c8a2e-5c8a2e?style=flat-square) | Mid signal bar |
+| Accent deep | `#3d5a20` | ![#3d5a20](https://img.shields.io/badge/-3d5a20-3d5a20?style=flat-square) | Deep signal bar |
+
+### Asset map
+
+| File | Size / role |
+|------|-------------|
+| [`readme-header.svg`](branding/readme-header.svg) | 1280×260 — GitHub README banner |
+| [`banner-social.svg`](branding/banner-social.svg) | 1280×640 — social / OG image |
+| [`logo-horizontal.svg`](branding/logo-horizontal.svg) | Dark background |
+| [`logo-horizontal-light.svg`](branding/logo-horizontal-light.svg) | Light background |
+| [`logo-stacked.svg`](branding/logo-stacked.svg) | Stacked mark + wordmark |
+| [`icon.svg`](branding/icon.svg) / mono variants | App / favicon marks |
+| [`app-icon.svg`](branding/app-icon.svg) / green | Squircle app icons |
+| [`avatar.svg`](branding/avatar.svg) | Profile / org avatar |
 
 ---
 
