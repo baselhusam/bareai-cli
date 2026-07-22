@@ -17,7 +17,7 @@
 
 <p align="center">
   <strong>CLI + TUI for solo AI engineers inspecting bare-metal AI infrastructure.</strong><br>
-  <sub>Host · GPU · Docker · LLM runtimes — correlated, read-only, scriptable.</sub>
+  <sub>Host · GPU · Docker · LLM · DB — correlated, read-only, scriptable.</sub>
 </p>
 
 <p align="center">
@@ -33,7 +33,7 @@
 
 `bareai` answers one question on a single machine: *what is this box doing right now?*
 
-It collects host resources, GPUs, Docker, and local LLM runtimes (Ollama, vLLM, SGLang, Triton, …), correlates them, and presents the result as human tables, JSON, or a live terminal dashboard.
+It collects host resources, GPUs, Docker, local LLM runtimes (Ollama, vLLM, SGLang, Triton, …), and local databases, correlates them, and presents the result as human tables, JSON, or a live terminal dashboard.
 
 | | |
 |---|---|
@@ -46,7 +46,7 @@ It collects host resources, GPUs, Docker, and local LLM runtimes (Ollama, vLLM, 
 Collectors are optional: missing Docker, GPU drivers, or LLM runtimes degrade gracefully. Commands still exit `0` and record a `skipped` reason.
 
 ```
-Host + GPU + Docker + LLM  →  Snapshot  →  CLI / TUI / JSON
+Host + GPU + Docker + LLM + DB  →  Snapshot  →  CLI / TUI / JSON
 ```
 
 ---
@@ -73,8 +73,8 @@ More options (APT, PowerShell, completions, build from source): **[docs/install.
 ```bash
 bareai status                 # one-screen summary
 bareai inspect                # full correlated report
-bareai                        # live TUI (TTY required)
 bareai inspect --json | jq .  # machine-readable snapshot
+bareai doctor --share         # paste-friendly report for issues/chat
 ```
 
 On a TTY, bare `bareai` launches the dashboard. In pipes/CI it prints help; `bareai watch` falls back to `status`.
@@ -90,6 +90,7 @@ On a TTY, bare `bareai` launches the dashboard. In pipes/CI it prints help; `bar
 | `gpu` | GPU inventory and metrics |
 | `docker` | Containers, images, volumes |
 | `llm` | Discovered inference servers |
+| `db` | Local databases (Postgres, Redis, Mongo, …) |
 | `probe` | One-hit smoke tests |
 | `inspect` | Full correlated report |
 | `doctor` | Ranked diagnostics (read-only hints) |

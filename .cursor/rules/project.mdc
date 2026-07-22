@@ -17,7 +17,7 @@ CLI + TUI for solo AI engineers doing AIOps on one bare-metal box.
 - **Platforms:** macOS, Linux, Windows
 - **GPUs:** NVIDIA, AMD, Apple Silicon (degrade gracefully when absent)
 - **Runtimes:** Ollama, vLLM, SGLang, Triton, and similar via discovery + HTTP probes
-- **Also:** host CPU/RAM/disk, Docker images/containers/volumes, correlated snapshot
+- **Also:** host CPU/RAM/disk, Docker images/containers/volumes, local databases, correlated snapshot
 
 ## Stack
 
@@ -29,7 +29,7 @@ CLI + TUI for solo AI engineers doing AIOps on one bare-metal box.
 ## Principles
 
 1. Degrade, don't die — missing GPU/Docker/LLM still useful
-2. Correlate — join host ↔ GPU ↔ container ↔ model/endpoint
+2. Correlate — join host ↔ GPU ↔ container ↔ model/endpoint ↔ database; every collector feeds `Correlations` or skips
 3. Machine-readable — every command supports `--json` for scripts/agents
 4. Read-mostly — no mutating Docker/runtime ops in current phases
 5. Single static binary — no runtime Python/Node dependency

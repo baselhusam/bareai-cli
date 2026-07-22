@@ -6,6 +6,7 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 
+	"github.com/baselhusam/bareai-cli/internal/render"
 	"github.com/baselhusam/bareai-cli/internal/snapshot"
 )
 
@@ -167,6 +168,21 @@ func (f overviewFocus) diveTarget(snap *snapshot.Snapshot) (diveTarget, bool) {
 		}
 		if f.row < len(snap.Correlations) {
 			row := snap.Correlations[f.row]
+			if snapshot.CorrelationKindOf(row) == snapshot.CorrelationKindDB {
+				for i, db := range snap.Databases {
+					if db.Address == row.Endpoint || db.Engine == row.Runtime {
+						return diveTarget{tab: TabDatabase, index: i}, true
+					}
+				}
+				return diveTarget{tab: TabDatabase}, true
+			}
+			if row.GPUIndex != nil {
+				for i, gpu := range snap.GPUs {
+					if gpu.Index == *row.GPUIndex {
+						return diveTarget{tab: TabGPU, index: i}, true
+					}
+				}
+			}
 			if row.ContainerName != "" && snap.Docker != nil {
 				for i, c := range dockerContainersForList(snap.Docker.Containers, false) {
 					if c.Name == row.ContainerName || strings.Contains(c.Name, row.ContainerName) {
@@ -197,7 +213,7 @@ func renderDashboard(snap *snapshot.Snapshot, hist metricHistory, focus overview
 	var parts []string
 	parts = append(parts, renderHostPanel(snap, hist, focus, barW, sparkW, s))
 	parts = append(parts, renderGPUPanel(snap, hist, focus, barW, sparkW, s))
-	parts = append(parts, renderLLMPanel(snap, focus, width, s))
+	parts = append(parts, renderLLMPanel(snap, hist, focus, width, s))
 	parts = append(parts, renderDatabasePanel(snap, focus, width, s))
 	parts = append(parts, renderCorrelationPanel(snap, focus, width, s))
 	if len(snap.Findings) > 0 {
@@ -283,36 +299,48 @@ func renderGPUPanel(snap *snapshot.Snapshot, hist metricHistory, focus overviewF
 	lines = append(lines, title)
 
 	if len(snap.GPUs) == 0 {
-		lines = append(lines, s.muted.Render("  no accelerators detected"))
+		lines = append(lines, s.muted.Render("  "+render.EmptyHint("gpu")))
 		return wrapPanel(lines, focus.section == sectionGPU, s)
 	}
 
 	for i, gpu := range snap.GPUs {
 		util := 0.0
 		utilLabel := "n/a"
+		showUtilBar := gpu.Utilization != nil
 		if gpu.Utilization != nil {
 			util = *gpu.Utilization
 			utilLabel = fmt.Sprintf("%.0f%%", util)
+		} else if gpu.Vendor == "apple" {
+			utilLabel = "unified"
 		}
 		memPct := pctUsed(gpu.MemoryUsed, gpu.MemoryTotal)
 		memLabel := "unified"
+		showMemBar := gpu.MemoryTotal > 0
 		if gpu.MemoryTotal > 0 {
 			memLabel = fmt.Sprintf("%s/%s", formatBytes(gpu.MemoryUsed), formatBytes(gpu.MemoryTotal))
+		} else if gpu.Vendor == "apple" {
+			memLabel = "unified pool"
 		}
 		temp := ""
 		if gpu.Temperature != nil {
 			temp = tempStyle(s, *gpu.Temperature).Render(fmt.Sprintf("%.0f°C", *gpu.Temperature))
 		}
-		line := fmt.Sprintf("%s[%d] %s  util %s %s %s  vram %s %s %s",
+		utilBar := ""
+		if showUtilBar {
+			utilBar = " " + renderBar(s, util, barW) + " " + renderSparkline(s, hist.gpuUtil(gpu.Index), sparkW)
+		}
+		memBar := ""
+		if showMemBar {
+			memBar = " " + renderBar(s, memPct, barW) + " " + renderSparkline(s, hist.gpuMem(gpu.Index), sparkW)
+		}
+		line := fmt.Sprintf("%s[%d] %s  util %s%s  vram %s%s",
 			rowPrefix(focus, sectionGPU, i),
 			gpu.Index,
 			truncate(gpu.Name, 18),
 			utilLabel,
-			renderBar(s, util, barW),
-			renderSparkline(s, hist.gpuUtil(gpu.Index), sparkW),
+			utilBar,
 			memLabel,
-			renderBar(s, memPct, barW),
-			renderSparkline(s, hist.gpuMem(gpu.Index), sparkW),
+			memBar,
 		)
 		if temp != "" {
 			line += "  " + temp
@@ -322,13 +350,13 @@ func renderGPUPanel(snap *snapshot.Snapshot, hist metricHistory, focus overviewF
 	return wrapPanel(lines, focus.section == sectionGPU, s)
 }
 
-func renderLLMPanel(snap *snapshot.Snapshot, focus overviewFocus, width int, s styles) string {
+func renderLLMPanel(snap *snapshot.Snapshot, hist metricHistory, focus overviewFocus, width int, s styles) string {
 	title := panelTitle(s, "Providers / LLMs", sectionLLM, focus)
 	var lines []string
 	lines = append(lines, title)
 
 	if len(snap.LLMs) == 0 {
-		lines = append(lines, s.muted.Render("  none discovered"))
+		lines = append(lines, s.muted.Render("  "+render.EmptyHint("llm")))
 		return wrapPanel(lines, focus.section == sectionLLM, s)
 	}
 
@@ -353,16 +381,21 @@ func renderLLMPanel(snap *snapshot.Snapshot, focus overviewFocus, width int, s s
 			}
 			health = s.healthStyle(llm.Health.OK).Render(label)
 		}
+		latencySpark := ""
+		if llm.Health != nil && llm.Health.LatencyMS > 0 {
+			latencySpark = " " + renderSparkline(s, hist.llmHealthLatency(llm.Endpoint), sparkWidthForTerminal(width))
+		}
 		name := llm.Name
 		if name == "" {
 			name = llm.Runtime
 		}
-		line := fmt.Sprintf("%s%-10s %-14s %-*s pid %-6s gpu %-3s %s",
+		line := fmt.Sprintf("%s%-10s %-14s %-*s pid %-6s gpu %-3s %s%s",
 			rowPrefix(focus, sectionLLM, i),
 			truncate(llm.Runtime, 10),
 			truncate(name, 14),
 			epW, truncate(llm.Endpoint, epW),
 			pid, gpu, health,
+			latencySpark,
 		)
 		lines = append(lines, line)
 	}
@@ -375,7 +408,7 @@ func renderDatabasePanel(snap *snapshot.Snapshot, focus overviewFocus, width int
 	lines = append(lines, title)
 
 	if len(snap.Databases) == 0 {
-		lines = append(lines, s.muted.Render("  none discovered"))
+		lines = append(lines, s.muted.Render("  "+render.EmptyHint("db")))
 		return wrapPanel(lines, focus.section == sectionDatabase, s)
 	}
 
@@ -419,41 +452,74 @@ func renderCorrelationPanel(snap *snapshot.Snapshot, focus overviewFocus, width 
 	lines = append(lines, title)
 
 	if len(snap.Correlations) == 0 {
-		lines = append(lines, s.muted.Render("  none"))
+		lines = append(lines, s.muted.Render("  "+render.EmptyHint("correlation")))
 		return wrapPanel(lines, focus.section == sectionCorrelation, s)
 	}
 
-	epW := 20
-	if width >= 100 {
-		epW = 24
+	limit := 6
+	if len(snap.Correlations) < limit {
+		limit = len(snap.Correlations)
 	}
-	for i, row := range snap.Correlations {
-		pid := "-"
-		if row.PID > 0 {
-			pid = fmt.Sprintf("%d", row.PID)
+	for i := 0; i < limit; i++ {
+		row := snap.Correlations[i]
+		lines = append(lines, formatTheaterCorrelationRow(row, focus, sectionCorrelation, i, width, s))
+	}
+	if len(snap.Correlations) > limit {
+		lines = append(lines, s.muted.Render(fmt.Sprintf("  … %d more rows", len(snap.Correlations)-limit)))
+	}
+	return wrapPanel(lines, focus.section == sectionCorrelation, s)
+}
+
+func formatTheaterCorrelationRow(row snapshot.Correlation, focus overviewFocus, sec overviewSection, rowIdx, width int, s styles) string {
+	prefix := rowPrefix(focus, sec, rowIdx)
+	health := s.muted.Render("?")
+	if row.HealthOK != nil {
+		label := "fail"
+		if *row.HealthOK {
+			label = "ok"
 		}
-		gpu := "-"
-		if row.GPUIndex != nil {
-			gpu = fmt.Sprintf("%d", *row.GPUIndex)
-		}
+		health = s.healthStyle(*row.HealthOK).Render(label)
+	}
+
+	if snapshot.CorrelationKindOf(row) == snapshot.CorrelationKindDB {
 		container := row.ContainerName
 		if container == "" {
 			container = "-"
 		}
-		vram := "-"
-		if row.VRAMBytes > 0 {
-			vram = formatBytes(row.VRAMBytes)
-		}
-		line := fmt.Sprintf("%s%-*s %-8s %-10s pid %-5s gpu %-3s vram %s",
-			rowPrefix(focus, sectionCorrelation, i),
-			epW, truncate(row.Endpoint, epW),
-			truncate(row.Runtime, 8),
-			truncate(container, 10),
-			pid, gpu, vram,
+		return fmt.Sprintf("%s%s → %s → %s → %s",
+			prefix,
+			truncate(row.Runtime, 10),
+			truncate(container, 12),
+			truncate(row.Endpoint, 20),
+			health,
 		)
-		lines = append(lines, line)
 	}
-	return wrapPanel(lines, focus.section == sectionCorrelation, s)
+
+	identity := row.Runtime
+	if len(row.Models) > 0 {
+		identity = row.Models[0]
+	}
+	container := row.ContainerName
+	if container == "" {
+		container = "-"
+	}
+	gpuPart := "-"
+	if row.GPUIndex != nil {
+		gpuPart = fmt.Sprintf("gpu %d", *row.GPUIndex)
+		if row.GPUName != "" {
+			gpuPart = truncate(row.GPUName, 10)
+		}
+		if row.VRAMBytes > 0 {
+			gpuPart += " · " + formatBytes(row.VRAMBytes)
+		}
+	}
+	return fmt.Sprintf("%s%s → %s → %s → %s",
+		prefix,
+		truncate(identity, 14),
+		truncate(container, 12),
+		gpuPart,
+		health,
+	)
 }
 
 func renderFindingsPanel(snap *snapshot.Snapshot, focus overviewFocus, s styles) string {

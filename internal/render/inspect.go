@@ -16,14 +16,10 @@ type InspectOptions struct {
 }
 
 type correlationColumns struct {
-	endpoint  int
-	runtime   int
+	kind      int
+	identity  int
 	container int
-	pid       int
-	gpu       int
-	vram      int
-	models    int
-	showModels bool
+	resource  int
 }
 
 // WriteInspect renders a full correlated infrastructure report.
@@ -56,6 +52,12 @@ func WriteInspect(w io.Writer, snap *snapshot.Snapshot, opts InspectOptions) err
 		return err
 	}
 	if err := writeCorrelationTable(w, snap.Correlations, opts.Width); err != nil {
+		return err
+	}
+	if _, err := fmt.Fprintln(w); err != nil {
+		return err
+	}
+	if err := writeInspectDatabases(w, snap.Databases); err != nil {
 		return err
 	}
 	if _, err := fmt.Fprintln(w); err != nil {
@@ -119,20 +121,37 @@ func writeInspectOverview(w io.Writer, snap *snapshot.Snapshot) error {
 	return nil
 }
 
+func writeInspectDatabases(w io.Writer, dbs []snapshot.Database) error {
+	if _, err := fmt.Fprintln(w, "Databases"); err != nil {
+		return err
+	}
+	if len(dbs) == 0 {
+		if _, err := fmt.Fprintf(w, "  %s\n", EmptyHint("db")); err != nil {
+			return err
+		}
+		return nil
+	}
+	for i, db := range dbs {
+		if i > 0 {
+			if _, err := fmt.Fprintln(w); err != nil {
+				return err
+			}
+		}
+		if err := writeDBDetail(w, db); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func correlationLayout(width int) correlationColumns {
 	switch {
 	case width < 80:
-		return correlationColumns{
-			endpoint: 18, runtime: 8, container: 10, pid: 5, gpu: 3, vram: 8, showModels: false,
-		}
+		return correlationColumns{kind: 4, identity: 16, container: 10, resource: 14}
 	case width < 120:
-		return correlationColumns{
-			endpoint: 24, runtime: 8, container: 12, pid: 5, gpu: 3, vram: 8, models: width - 65, showModels: true,
-		}
+		return correlationColumns{kind: 4, identity: 22, container: 12, resource: 18}
 	default:
-		return correlationColumns{
-			endpoint: 36, runtime: 10, container: 14, pid: 5, gpu: 3, vram: 10, models: width - 83, showModels: true,
-		}
+		return correlationColumns{kind: 4, identity: 28, container: 14, resource: 24}
 	}
 }
 
@@ -141,82 +160,35 @@ func writeCorrelationTable(w io.Writer, rows []snapshot.Correlation, width int) 
 		return err
 	}
 	if len(rows) == 0 {
-		if _, err := fmt.Fprintln(w, "  none"); err != nil {
+		if _, err := fmt.Fprintf(w, "  %s\n", EmptyHint("correlation")); err != nil {
 			return err
 		}
 		return nil
 	}
 
 	cols := correlationLayout(width)
-	if cols.showModels {
-		if _, err := fmt.Fprintf(w, "  %-*s %-*s %-*s %-*s %-*s %-*s %s\n",
-			cols.endpoint, "ENDPOINT",
-			cols.runtime, "RUNTIME",
-			cols.container, "CONTAINER",
-			cols.pid, "PID",
-			cols.gpu, "GPU",
-			cols.vram, "VRAM",
-			"MODELS",
-		); err != nil {
-			return err
-		}
-	} else {
-		if _, err := fmt.Fprintf(w, "  %-*s %-*s %-*s %-*s %-*s %s\n",
-			cols.endpoint, "ENDPOINT",
-			cols.runtime, "RUNTIME",
-			cols.container, "CONTAINER",
-			cols.pid, "PID",
-			cols.gpu, "GPU",
-			"VRAM",
-		); err != nil {
-			return err
-		}
+	if _, err := fmt.Fprintf(w, "  %-*s %-*s %-*s %-*s %s\n",
+		cols.kind, "KIND",
+		cols.identity, "IDENTITY",
+		cols.container, "CONTAINER",
+		cols.resource, "GPU/ADDR",
+		"HEALTH",
+	); err != nil {
+		return err
 	}
 
 	for _, row := range rows {
-		pid := "-"
-		if row.PID > 0 {
-			pid = fmt.Sprintf("%d", row.PID)
-		}
-		gpu := "-"
-		if row.GPUIndex != nil {
-			gpu = fmt.Sprintf("%d", *row.GPUIndex)
-		}
-		vram := "-"
-		if row.VRAMBytes > 0 {
-			vram = formatBytes(row.VRAMBytes)
-		}
+		kind := snapshot.CorrelationKindOf(row)
 		container := row.ContainerName
 		if container == "" {
 			container = "-"
 		}
-		models := strings.Join(row.Models, ", ")
-		if models == "" {
-			models = "-"
-		}
-
-		if cols.showModels {
-			if _, err := fmt.Fprintf(w, "  %-*s %-*s %-*s %-*s %-*s %-*s %s\n",
-				cols.endpoint, truncate(row.Endpoint, cols.endpoint),
-				cols.runtime, truncate(row.Runtime, cols.runtime),
-				cols.container, truncate(container, cols.container),
-				cols.pid, pid,
-				cols.gpu, gpu,
-				cols.vram, vram,
-				truncate(models, cols.models),
-			); err != nil {
-				return err
-			}
-			continue
-		}
-
-		if _, err := fmt.Fprintf(w, "  %-*s %-*s %-*s %-*s %-*s %s\n",
-			cols.endpoint, truncate(row.Endpoint, cols.endpoint),
-			cols.runtime, truncate(row.Runtime, cols.runtime),
+		if _, err := fmt.Fprintf(w, "  %-*s %-*s %-*s %-*s %s\n",
+			cols.kind, kind,
+			cols.identity, truncate(correlationIdentity(row), cols.identity),
 			cols.container, truncate(container, cols.container),
-			cols.pid, pid,
-			cols.gpu, gpu,
-			vram,
+			cols.resource, truncate(correlationResource(row), cols.resource),
+			correlationHealthLabel(row),
 		); err != nil {
 			return err
 		}
@@ -224,12 +196,50 @@ func writeCorrelationTable(w io.Writer, rows []snapshot.Correlation, width int) 
 	return nil
 }
 
+func correlationIdentity(row snapshot.Correlation) string {
+	if snapshot.CorrelationKindOf(row) == snapshot.CorrelationKindDB {
+		return row.Runtime
+	}
+	if len(row.Models) > 0 {
+		return row.Models[0]
+	}
+	return row.Runtime
+}
+
+func correlationResource(row snapshot.Correlation) string {
+	if snapshot.CorrelationKindOf(row) == snapshot.CorrelationKindDB {
+		return row.Endpoint
+	}
+	gpu := "-"
+	if row.GPUIndex != nil {
+		gpu = fmt.Sprintf("gpu %d", *row.GPUIndex)
+		if row.GPUName != "" {
+			gpu = truncate(row.GPUName, 12)
+		}
+	}
+	vram := ""
+	if row.VRAMBytes > 0 {
+		vram = " · " + formatBytes(row.VRAMBytes)
+	}
+	return gpu + vram
+}
+
+func correlationHealthLabel(row snapshot.Correlation) string {
+	if row.HealthOK == nil {
+		return "?"
+	}
+	if *row.HealthOK {
+		return "ok"
+	}
+	return "fail"
+}
+
 func writeInspectLLMs(w io.Writer, llms []snapshot.LLM) error {
 	if _, err := fmt.Fprintln(w, "LLM runtimes"); err != nil {
 		return err
 	}
 	if len(llms) == 0 {
-		if _, err := fmt.Fprintln(w, "  none"); err != nil {
+		if _, err := fmt.Fprintf(w, "  %s\n", EmptyHint("llm")); err != nil {
 			return err
 		}
 		return nil
@@ -252,7 +262,7 @@ func writeInspectDocker(w io.Writer, docker *snapshot.Docker) error {
 		return err
 	}
 	if docker == nil || !docker.Available {
-		if _, err := fmt.Fprintln(w, "  not available"); err != nil {
+		if _, err := fmt.Fprintf(w, "  %s\n", EmptyHint("docker")); err != nil {
 			return err
 		}
 		return nil

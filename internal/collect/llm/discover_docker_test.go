@@ -59,7 +59,7 @@ func TestCorrelateGPU(t *testing.T) {
 			PID:  42,
 			Name: "python",
 		}},
-	}})
+	}}, nil)
 	if llm.GPUIndex == nil || *llm.GPUIndex != idx {
 		t.Fatalf("gpu index = %v", llm.GPUIndex)
 	}

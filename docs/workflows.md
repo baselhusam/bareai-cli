@@ -1,5 +1,19 @@
 # Common workflows
 
+## Paste a doctor report into an issue
+
+```bash
+bareai doctor --share > box-report.txt
+# paste into GitHub issue, Discord, or a gist
+```
+
+## First run on an empty box
+
+```bash
+bareai              # Overview shows hints when nothing is running yet
+bareai doctor       # includes host.empty_box info finding when idle
+```
+
 ## SSH into an AI box and see everything
 
 ```bash

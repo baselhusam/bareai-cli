@@ -128,6 +128,102 @@ func formatFindingCounts(total int, counts map[string]int) string {
 	return fmt.Sprintf("%d %s (%s)", total, label, strings.Join(sevParts, ", "))
 }
 
+// WriteDoctorShare renders a compact paste-friendly doctor report.
+func WriteDoctorShare(w io.Writer, snap *snapshot.Snapshot, version string) error {
+	if snap == nil {
+		return fmt.Errorf("snapshot is nil")
+	}
+	const width = 88
+
+	host := "unknown"
+	osLine := ""
+	if snap.Host != nil {
+		host = snap.Host.Hostname
+		osLine = fmt.Sprintf("%s/%s %s", snap.Host.OS, snap.Host.Arch, snap.Host.Platform)
+	}
+
+	if _, err := fmt.Fprintf(w, "bareai doctor %s\n", version); err != nil {
+		return err
+	}
+	if _, err := fmt.Fprintf(w, "Host: %s  %s\n", host, osLine); err != nil {
+		return err
+	}
+	if _, err := fmt.Fprintf(w, "Collected: %s\n\n", snap.CollectedAt.Format(time.RFC3339)); err != nil {
+		return err
+	}
+
+	if _, err := fmt.Fprintln(w, "GPUs"); err != nil {
+		return err
+	}
+	if len(snap.GPUs) == 0 {
+		if _, err := fmt.Fprintf(w, "  %s\n\n", EmptyHint("gpu")); err != nil {
+			return err
+		}
+	} else {
+		for _, gpu := range snap.GPUs {
+			mem := "unified"
+			if gpu.MemoryTotal > 0 {
+				mem = fmt.Sprintf("%s/%s", formatBytes(gpu.MemoryUsed), formatBytes(gpu.MemoryTotal))
+			}
+			if _, err := fmt.Fprintf(w, "  [%d] %s (%s) mem=%s\n", gpu.Index, gpu.Name, gpu.Vendor, mem); err != nil {
+				return err
+			}
+		}
+		if _, err := fmt.Fprintln(w); err != nil {
+			return err
+		}
+	}
+
+	if _, err := fmt.Fprintln(w, "Correlation"); err != nil {
+		return err
+	}
+	if len(snap.Correlations) == 0 {
+		if _, err := fmt.Fprintf(w, "  %s\n\n", EmptyHint("correlation")); err != nil {
+			return err
+		}
+	} else {
+		limit := 8
+		if len(snap.Correlations) < limit {
+			limit = len(snap.Correlations)
+		}
+		for i := 0; i < limit; i++ {
+			row := snap.Correlations[i]
+			if _, err := fmt.Fprintf(w, "  %s %s → %s → %s\n",
+				snapshot.CorrelationKindOf(row),
+				truncate(correlationIdentity(row), 18),
+				truncate(row.ContainerName, 14),
+				correlationHealthLabel(row),
+			); err != nil {
+				return err
+			}
+		}
+		if _, err := fmt.Fprintln(w); err != nil {
+			return err
+		}
+	}
+
+	counts := countSeverities(snap.Findings)
+	if _, err := fmt.Fprintf(w, "Findings (%s)\n", formatFindingCounts(len(snap.Findings), counts)); err != nil {
+		return err
+	}
+	if len(snap.Findings) == 0 {
+		if _, err := fmt.Fprintln(w, "  No findings."); err != nil {
+			return err
+		}
+	} else {
+		for _, f := range snap.Findings {
+			if err := writeDoctorFinding(w, f, width); err != nil {
+				return err
+			}
+			if _, err := fmt.Fprintln(w); err != nil {
+				return err
+			}
+		}
+	}
+
+	return writeSkipped(w, snap.Skipped)
+}
+
 func wrapText(text string, width int, indent string) []string {
 	if width <= len(indent)+10 {
 		width = 80

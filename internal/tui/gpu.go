@@ -54,6 +54,9 @@ func gpuDetailText(gpu snapshot.GPU, s styles) string {
 	if gpu.Driver != "" {
 		fmt.Fprintf(&b, "  Driver:    %s\n", gpu.Driver)
 	}
+	if gpu.Notes != "" {
+		fmt.Fprintf(&b, "  Notes:     %s\n", gpu.Notes)
+	}
 	if gpu.MemoryTotal > 0 || gpu.MemoryUsed > 0 {
 		memPct := pctUsed(gpu.MemoryUsed, gpu.MemoryTotal)
 		fmt.Fprintf(&b, "  Memory:    %s / %s  %s\n",

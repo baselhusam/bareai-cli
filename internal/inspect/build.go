@@ -7,6 +7,6 @@ func Enrich(snap *snapshot.Snapshot) {
 	if snap == nil {
 		return
 	}
-	snap.Correlations = BuildCorrelations(snap.LLMs, snap.GPUs)
+	snap.Correlations = BuildCorrelations(snap)
 	snap.Findings = AnalyzeFindings(snap)
 }

@@ -4,6 +4,7 @@ package gpu
 
 import (
 	"context"
+	"encoding/json"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -32,9 +33,141 @@ func collectAMDROCm(ctx context.Context) ([]snapshot.GPU, error) {
 }
 
 func parseROCmSMIJSON(data string) ([]snapshot.GPU, error) {
-	// rocm-smi --json output varies by version; fall back to sysfs if parsing fails.
-	_ = data
-	return collectAMDSysfs()
+	data = strings.TrimSpace(data)
+	if data == "" {
+		return collectAMDSysfs()
+	}
+
+	var root map[string]json.RawMessage
+	if err := json.Unmarshal([]byte(data), &root); err != nil {
+		return collectAMDSysfs()
+	}
+
+	var gpus []snapshot.GPU
+	index := 0
+	for cardKey, raw := range root {
+		if !strings.HasPrefix(cardKey, "card") {
+			continue
+		}
+		var card map[string]json.RawMessage
+		if err := json.Unmarshal(raw, &card); err != nil {
+			continue
+		}
+
+		name := rocmString(card, "Card series", "Card model", "Card Series", "Card Model")
+		if name == "" {
+			name = "AMD GPU"
+		}
+
+		gpu := snapshot.GPU{
+			Index:  index,
+			Vendor: vendorAMD,
+			Name:   name,
+		}
+
+		if total, used, ok := rocmVRAM(card); ok {
+			gpu.MemoryTotal = total
+			gpu.MemoryUsed = used
+		}
+		if temp := rocmFloat(card, "Temperature (Sensor edge) (C)", "Temperature (Edge)", "Temperature"); temp != nil {
+			gpu.Temperature = temp
+		}
+		if util := rocmFloat(card, "GPU use (%)", "GPU Use (%)", "GPU use"); util != nil {
+			gpu.Utilization = util
+		}
+
+		gpus = append(gpus, gpu)
+		index++
+	}
+
+	if len(gpus) == 0 {
+		return collectAMDSysfs()
+	}
+	return gpus, nil
+}
+
+func rocmString(card map[string]json.RawMessage, keys ...string) string {
+	for _, key := range keys {
+		raw, ok := card[key]
+		if !ok {
+			continue
+		}
+		var s string
+		if err := json.Unmarshal(raw, &s); err == nil && strings.TrimSpace(s) != "" {
+			return strings.TrimSpace(s)
+		}
+	}
+	return ""
+}
+
+func rocmFloat(card map[string]json.RawMessage, keys ...string) *float64 {
+	for _, key := range keys {
+		raw, ok := card[key]
+		if !ok {
+			continue
+		}
+		var f float64
+		if err := json.Unmarshal(raw, &f); err == nil {
+			return &f
+		}
+		var s string
+		if err := json.Unmarshal(raw, &s); err == nil {
+			s = strings.TrimSpace(strings.TrimSuffix(s, "%"))
+			if v, err := strconv.ParseFloat(s, 64); err == nil {
+				return &v
+			}
+		}
+	}
+	return nil
+}
+
+func rocmVRAM(card map[string]json.RawMessage) (total, used uint64, ok bool) {
+	for key, raw := range card {
+		if !strings.Contains(strings.ToLower(key), "vram") {
+			continue
+		}
+		var s string
+		if err := json.Unmarshal(raw, &s); err != nil {
+			continue
+		}
+		parts := strings.Fields(strings.ReplaceAll(s, "/", " "))
+		for _, p := range parts {
+			if v, err := parseByteSize(p); err == nil {
+				if total == 0 {
+					total = v
+				} else {
+					used = v
+					return total, used, true
+				}
+			}
+		}
+	}
+	return 0, 0, false
+}
+
+func parseByteSize(s string) (uint64, error) {
+	s = strings.TrimSpace(strings.ToUpper(s))
+	multiplier := uint64(1)
+	switch {
+	case strings.HasSuffix(s, "GIB"):
+		multiplier = 1024 * 1024 * 1024
+		s = strings.TrimSuffix(s, "GIB")
+	case strings.HasSuffix(s, "MIB"):
+		multiplier = 1024 * 1024
+		s = strings.TrimSuffix(s, "MIB")
+	case strings.HasSuffix(s, "GB"):
+		multiplier = 1000 * 1000 * 1000
+		s = strings.TrimSuffix(s, "GB")
+	case strings.HasSuffix(s, "MB"):
+		multiplier = 1000 * 1000
+		s = strings.TrimSuffix(s, "MB")
+	}
+	s = strings.TrimSpace(s)
+	v, err := strconv.ParseFloat(s, 64)
+	if err != nil {
+		return 0, err
+	}
+	return uint64(v * float64(multiplier)), nil
 }
 
 func collectAMDSysfs() ([]snapshot.GPU, error) {

@@ -1,10 +1,12 @@
 # bareai Roadmap
 
-CLI + TUI for solo AI engineers inspecting bare-metal AI boxes: host, GPUs (NVIDIA / AMD / Apple), Docker, and local LLM runtimes (Ollama, vLLM, SGLang, Triton, …).
+CLI + TUI for solo AI engineers on bare-metal AI boxes: host, GPUs (NVIDIA / AMD / Apple), Docker, local LLM runtimes (Ollama, vLLM, SGLang, Triton, …), and related local services.
 
 **Stack:** Go · Cobra · Bubble Tea · GoReleaser  
-**Mode:** inspect / probe only (no mutate)  
-**Persona:** one engineer, one machine
+**Mode:** inspect / probe first; confirm-gated mutate only after the cockpit is addictive (Phase 12)  
+**Persona:** one engineer, one machine (multi-host only after single-box is religious)
+
+**North star:** the pane you never close → the sensor every agent trusts → carefully fix what you found.
 
 ---
 
@@ -169,14 +171,74 @@ CLI + TUI for solo AI engineers inspecting bare-metal AI boxes: host, GPUs (NVID
 
 ---
 
+## Phase 10 — Cockpit love (always-open pane)
+
+**Goal:** Make `bareai` / `bareai watch` muscle memory — the correlated AI-box cockpit people leave open like `btop`, not a utility they open only when something breaks.
+
+- [x] Finish local DB discovery as a first-class pane of the same story (Postgres, Redis, MongoDB, MySQL, Qdrant, Elasticsearch, …): docs, doctor rules, CLI/TUI/JSON, and correlation into the main join (not a silo)
+- [x] Correlation as theater: Overview answers *which model → which container → which GPU → VRAM → health* in one glance; join graph is the product
+- [x] Residency UX for `watch`: cheaper refresh paths, livelier sparklines/trends, fuzzy dive that feels inevitable over SSH/tmux
+- [x] Empty-box magic: delightful first run when Docker/GPU/LLM/DB are absent (“nothing running yet — here’s what I’d look for”); never a dead dashboard
+- [x] Apple Silicon + AMD GPU dignity: richer identity/metrics where the platform allows; honest limits elsewhere (Mac persona must not feel second-class)
+- [x] Shareable doctor: paste-friendly report (`doctor --share` / gist-ready text or JSON) for Discord, GitHub issues, Slack
+- [x] Protect identity: every new collector must join the correlation graph or stay out
+
+**Exit:** First 10 seconds feel unfairly good; people leave `watch` open in a pane; pasteable doctor becomes how the community debugs a box.
+
+---
+
+## Phase 11 — Agent eyes (dependency)
+
+**Goal:** Coding agents and scripts treat bareai as ground truth for the machine — not `nvidia-smi` + `docker ps` + curl. `--json` got us to the door; a first-class agent contract walks through it.
+
+- [ ] MCP server exposing stable tools: list endpoints/models, inspect correlation, probe latency/health, surface doctor findings
+- [ ] Documented agent contract on top of the shared `Snapshot` schema (versioned, predictable field names, skip reasons)
+- [ ] Agent-oriented examples: Cursor / Claude / scripts calling bareai instead of ad-hoc shell soup
+- [ ] Keep CLI/TUI/MCP on one brain — no parallel discovery implementations
+- [ ] Optional light Prometheus export of bareai’s own snapshot signals (for stacks that already scrape)
+
+**Exit:** An agent can answer “what’s on this box and is inference healthy?” via bareai alone; uninstall starts to hurt.
+
+---
+
+## Phase 12 — Careful power (close the loop)
+
+**Goal:** After diagnosis, close the loop with a tiny set of confirm-gated actions — a reward after trust, not a mutate platform.
+
+- [ ] Explicit confirmations (and dry-run where useful) for ~5 daily actions, e.g.:
+  - restart / stop a discovered container or endpoint tenant
+  - free a stuck GPU tenant (documented, safe path)
+  - re-probe after a change
+  - open / tail relevant logs (read path first; mutate only where clearly scoped)
+- [ ] Every mutate surfaces what will change and why (doctor-style what/why/try → do)
+- [ ] Audit-friendly output (`--json` result of the action); never silent side effects
+- [ ] Stay out of general Docker/systemd wrappers — only actions that follow a bareai finding
+
+**Exit:** Diagnose → confirm → fix for the common hung-box cases without leaving bareai; still not a fleet orchestrator.
+
+---
+
+## Phase 13 — Reach (multi-host, only when ready)
+
+**Goal:** Laptop → GPU box without diluting the single-pane identity. Ship only after Phases 10–12 feel religious on one machine.
+
+- [ ] SSH / remote snapshot of one other host (same collectors, same Snapshot)
+- [ ] UX that still feels like one cockpit (context switch / host picker), not a fleet console
+- [ ] Auth and timeout behavior that degrade cleanly when the remote is down
+
+**Exit:** Solo engineer can inspect laptop + one AI box with the same mental model.
+
+---
+
 ## Later (backlog — not scheduled)
 
-- Mutating actions (restart container, reload model) behind explicit confirmations
-- Multi-host / SSH remote snapshot
-- Prometheus metrics export
-- MCP server so coding agents can call bareai
 - Kubernetes / pod awareness (secondary to bare metal)
+- Broader fleet / multi-box beyond one remote
 - Official distro packages (Debian/Ubuntu archives)
+- Scoop formula (winget already covered)
+- Deeper vendor GPU parity beyond Phase 10 dignity pass
+
+**Do not chase:** becoming kubectl, Datadog, or a generic sysadmin suite. Stay the cockpit for an AI box.
 
 ---
 

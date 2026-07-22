@@ -42,7 +42,7 @@ func TestWriteStatus(t *testing.T) {
 		"bareai status",
 		"test-box",
 		"Apple M1",
-		"none detected",
+		"no accelerators detected",
 		"none discovered",
 	} {
 		if !strings.Contains(out, want) {

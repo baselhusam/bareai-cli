@@ -52,7 +52,7 @@ func (m *mockAPIClient) Close() error { return nil }
 
 func TestCollectWithClientContainerListError(t *testing.T) {
 	wantErr := errors.New("permission denied")
-	d, skips, err := collectWithClient(context.Background(), &mockAPIClient{containerListErr: wantErr})
+	d, skips, err := collectWithClient(context.Background(), &mockAPIClient{containerListErr: wantErr}, Options{Detail: true})
 	if err != nil {
 		t.Fatalf("expected nil error, got %v", err)
 	}

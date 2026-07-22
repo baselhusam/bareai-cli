@@ -9,6 +9,7 @@
 | `gpu` | GPU/accelerator inventory and metrics |
 | `docker` | Docker Engine state (containers, optional images/volumes) |
 | `llm` | Discovered inference servers, health, models, metrics |
+| `db` | Local database discovery (Postgres, Redis, MongoDB, MySQL, Qdrant, Elasticsearch) |
 | `probe` | One-hit smoke tests against discovered or explicit endpoints |
 | `inspect` | Full correlated report (overview, correlation table, sections, findings) |
 | `doctor` | Ranked diagnostics with read-only what/why/try hints |
@@ -201,6 +202,23 @@ vLLM  http://127.0.0.1:8000  (process pid 1234)
 
 ---
 
+## db
+
+```bash
+bareai db
+bareai db --json
+```
+
+**What it collects:** Local database discovery with optional TCP/version probes.
+
+**Engines:** Postgres, Redis, MongoDB, MySQL, Qdrant, Elasticsearch (Docker + process + port heuristics).
+
+**Human output includes:** engine, address, version, health, container/PID when correlated.
+
+DB rows also appear in `inspect` correlation (`kind=db`) and the TUI **DBs** tab (key `5`).
+
+---
+
 ## probe
 
 ```bash
@@ -235,7 +253,9 @@ bareai inspect
 bareai inspect --json
 ```
 
-**What it collects:** Full snapshot (host, GPU, Docker, LLM with probes/models/metrics) plus correlation and informational findings.
+**What it collects:** Full snapshot (host, GPU, Docker, LLM with probes/models/metrics, databases) plus correlation and informational findings.
+
+**Correlation table:** theater rows with `kind` (`llm` or `db`) — identity → container → GPU/VRAM or address → health.
 
 **Human output sections:**
 
@@ -272,6 +292,7 @@ Use `bareai doctor` for expanded what/why/try remediation hints (still read-only
 bareai doctor
 bareai doctor --severity warn
 bareai doctor --severity critical
+bareai doctor --share
 bareai doctor --json
 ```
 
@@ -280,6 +301,7 @@ bareai doctor --json
 | Flag | Default | Description |
 |------|---------|-------------|
 | `--severity` | config `doctor.min_severity` (`info`) | Minimum severity: `info`, `warn`, or `critical` |
+| `--share` | `false` | Paste-friendly report for GitHub issues, Discord, or gists (cannot combine with `--json`) |
 
 **Severity levels:**
 

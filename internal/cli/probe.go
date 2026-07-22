@@ -62,7 +62,7 @@ var probeCmd = &cobra.Command{
 				snap.LLMs = []snapshot.LLM{llm}
 			}
 		} else {
-			docker, dockerSkips, err := dockercollect.Collect(ctx)
+			docker, dockerSkips, err := dockercollect.Collect(ctx, dockercollect.Options{Detail: false})
 			snap.Docker = &docker
 			snap.Skipped = append(snap.Skipped, dockerSkips...)
 			if err != nil {

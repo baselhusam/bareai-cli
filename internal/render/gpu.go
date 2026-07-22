@@ -30,7 +30,7 @@ func WriteGPU(w io.Writer, snap *snapshot.Snapshot, noColor bool) error {
 	}
 
 	if len(snap.GPUs) == 0 {
-		if _, err := fmt.Fprintln(w, "No accelerators detected."); err != nil {
+		if _, err := fmt.Fprintf(w, "%s\n", EmptyHint("gpu")); err != nil {
 			return err
 		}
 	} else {
@@ -77,6 +77,11 @@ func writeGPUDetail(w io.Writer, gpu snapshot.GPU) error {
 	}
 	if gpu.Driver != "" {
 		if _, err := fmt.Fprintf(w, "  Driver:    %s\n", gpu.Driver); err != nil {
+			return err
+		}
+	}
+	if gpu.Notes != "" {
+		if _, err := fmt.Fprintf(w, "  Notes:     %s\n", gpu.Notes); err != nil {
 			return err
 		}
 	}
@@ -133,7 +138,7 @@ func writeGPUDetail(w io.Writer, gpu snapshot.GPU) error {
 
 func writeGPUSummary(w io.Writer, gpus []snapshot.GPU) error {
 	if len(gpus) == 0 {
-		if _, err := fmt.Fprintln(w, "GPUs:        none detected"); err != nil {
+		if _, err := fmt.Fprintf(w, "GPUs:        %s\n", EmptyHint("gpu")); err != nil {
 			return err
 		}
 		return nil

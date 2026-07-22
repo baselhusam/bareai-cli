@@ -23,6 +23,8 @@ func Analyze(snap *snapshot.Snapshot, opts Options) []snapshot.Finding {
 	findings = append(findings, rules.GPU(snap)...)
 	findings = append(findings, rules.Docker(snap)...)
 	findings = append(findings, rules.LLM(snap)...)
+	findings = append(findings, rules.DB(snap)...)
+	findings = append(findings, rules.EmptyBox(snap)...)
 	findings = append(findings, rules.Skipped(snap)...)
 
 	sort.Slice(findings, func(i, j int) bool {

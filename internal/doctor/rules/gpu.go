@@ -36,6 +36,21 @@ func GPU(snap *snapshot.Snapshot) []snapshot.Finding {
 	}
 
 	for _, gpu := range snap.GPUs {
+		if gpu.Vendor == "apple" && gpu.Notes != "" {
+			out = append(out, finding(
+				"gpu.apple_limits",
+				SeverityInfo,
+				"gpu",
+				rankInfo+10,
+				fmt.Sprintf("Apple GPU %d: %s", gpu.Index, gpu.Name),
+				gpu.Notes,
+				"bareai gpu --json  ·  correlate LLMs by PID/container on unified memory",
+			))
+			break
+		}
+	}
+
+	for _, gpu := range snap.GPUs {
 		if gpu.MemoryTotal == 0 {
 			continue
 		}

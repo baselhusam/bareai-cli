@@ -22,7 +22,7 @@ Full collector fidelity: NVIDIA/AMD GPUs, unix Docker socket, process + port LLM
 |------|---------|----------|
 | Load avg | `bareai status` | Load line with three values (when supported) |
 | NVIDIA | `bareai gpu` | GPU util/VRAM/temp when `nvidia-smi` present |
-| AMD | `bareai gpu` | sysfs/ROCm metrics when AMD GPU present |
+| AMD | `bareai gpu` | sysfs/ROCm metrics; `rocm-smi --json` util/name when available |
 | Docker | `bareai docker` | Engine info + containers via `/var/run/docker.sock` |
 | Ollama container | `bareai llm` | Discovers `http://127.0.0.1:11434` from Docker heuristics |
 | Correlation | `bareai inspect` | Endpoint → container → PID → GPU table when workloads running |
@@ -31,7 +31,7 @@ Full collector fidelity: NVIDIA/AMD GPUs, unix Docker socket, process + port LLM
 
 | Step | Command | Expected |
 |------|---------|----------|
-| Apple GPU | `bareai gpu` | Chip name; unified memory note (no discrete VRAM) |
+| Apple GPU | `bareai gpu` | Chip name + unified memory; richer identity via system_profiler; no util/temp/power |
 | Docker Desktop | `bareai docker` | Connects via Docker Desktop socket |
 | Ollama via Docker | `bareai llm` | Discovers Ollama container when running |
 | Native Ollama | `bareai llm` | Discovers via port `:11434` or process `ollama` |

@@ -51,6 +51,7 @@ type GPU struct {
 	Name        string       `json:"name"`
 	UUID        string       `json:"uuid,omitempty"`
 	Driver      string       `json:"driver,omitempty"`
+	Notes       string       `json:"notes,omitempty"`
 	MemoryTotal uint64       `json:"memory_total_bytes"`
 	MemoryUsed  uint64       `json:"memory_used_bytes"`
 	Utilization *float64     `json:"utilization_pct,omitempty"`
@@ -174,17 +175,33 @@ type ProbeResult struct {
 	Error     string `json:"error,omitempty"`
 }
 
-// Correlation links an LLM endpoint to container, process, and GPU resources.
+// CorrelationKind identifies a correlation row type.
+const (
+	CorrelationKindLLM = "llm"
+	CorrelationKindDB  = "db"
+)
+
+// Correlation links an LLM endpoint or database address to container, process, and GPU resources.
 type Correlation struct {
+	Kind          string   `json:"kind,omitempty"`
 	Endpoint      string   `json:"endpoint"`
 	Runtime       string   `json:"runtime"`
 	ContainerName string   `json:"container_name,omitempty"`
 	ContainerID   string   `json:"container_id,omitempty"`
 	PID           int      `json:"pid,omitempty"`
 	GPUIndex      *int     `json:"gpu_index,omitempty"`
+	GPUName       string   `json:"gpu_name,omitempty"`
 	VRAMBytes     uint64   `json:"vram_bytes,omitempty"`
 	Models        []string `json:"models,omitempty"`
 	HealthOK      *bool    `json:"health_ok,omitempty"`
+}
+
+// CorrelationKindOf returns the effective kind (empty means LLM for back-compat).
+func CorrelationKindOf(c Correlation) string {
+	if c.Kind == "" {
+		return CorrelationKindLLM
+	}
+	return c.Kind
 }
 
 // Finding holds a diagnostic finding from inspect or doctor.

@@ -14,6 +14,7 @@ type metricHistory struct {
 
 	gpuUtilSamples map[int][]float64
 	gpuMemSamples  map[int][]float64
+	llmLatency     map[string][]float64
 }
 
 func newMetricHistory(max int) metricHistory {
@@ -24,6 +25,7 @@ func newMetricHistory(max int) metricHistory {
 		max:            max,
 		gpuUtilSamples: make(map[int][]float64),
 		gpuMemSamples:  make(map[int][]float64),
+		llmLatency:     make(map[string][]float64),
 	}
 }
 
@@ -55,6 +57,23 @@ func (h *metricHistory) record(snap *snapshot.Snapshot) {
 			delete(h.gpuMemSamples, idx)
 		}
 	}
+
+	seenLLM := make(map[string]struct{}, len(snap.LLMs))
+	for _, llm := range snap.LLMs {
+		key := llm.Endpoint
+		if key == "" {
+			key = llm.Runtime
+		}
+		seenLLM[key] = struct{}{}
+		if llm.Health != nil && llm.Health.LatencyMS > 0 {
+			h.llmLatency[key] = h.appendSample(h.llmLatency[key], float64(llm.Health.LatencyMS))
+		}
+	}
+	for key := range h.llmLatency {
+		if _, ok := seenLLM[key]; !ok {
+			delete(h.llmLatency, key)
+		}
+	}
 }
 
 func (h metricHistory) appendSample(samples []float64, value float64) []float64 {
@@ -82,4 +101,11 @@ func (h metricHistory) gpuMem(idx int) []float64 {
 		return nil
 	}
 	return h.gpuMemSamples[idx]
+}
+
+func (h metricHistory) llmHealthLatency(endpoint string) []float64 {
+	if h.llmLatency == nil {
+		return nil
+	}
+	return h.llmLatency[endpoint]
 }

@@ -14,8 +14,8 @@
 
 | Platform | NVIDIA | AMD | Apple |
 |----------|--------|-----|-------|
-| Linux | Full via `nvidia-smi` (util, VRAM, temp, power, processes) | sysfs VRAM + temp; ROCm best-effort | n/a |
-| macOS | If `nvidia-smi` installed | n/a | Chip name only; unified memory (no util/temp/power) |
+| Linux | NVIDIA via `nvidia-smi`; AMD via sysfs + `rocm-smi` JSON when available | sysfs VRAM + temp; ROCm util/name when present | n/a |
+| macOS | If `nvidia-smi` installed | n/a | Chip name + unified memory pool; richer identity via system_profiler; no util/temp/power |
 | Windows | If `nvidia-smi` installed | n/a | n/a |
 
 ## Platform notes

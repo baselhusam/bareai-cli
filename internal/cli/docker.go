@@ -25,7 +25,7 @@ var dockerCmd = &cobra.Command{
 		defer cancel()
 
 		snap := snapshot.New()
-		docker, skips, err := dockercollect.Collect(ctx)
+		docker, skips, err := dockercollect.Collect(ctx, dockercollect.Options{Detail: true})
 		if err != nil {
 			return err
 		}

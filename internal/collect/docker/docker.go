@@ -11,8 +11,13 @@ import (
 	"github.com/baselhusam/bareai-cli/internal/snapshot"
 )
 
+// Options controls Docker collection depth.
+type Options struct {
+	Detail bool // when false, skip images and volumes
+}
+
 // Collect gathers read-only Docker Engine inventory.
-func Collect(ctx context.Context) (snapshot.Docker, []snapshot.Skip, error) {
+func Collect(ctx context.Context, opts Options) (snapshot.Docker, []snapshot.Skip, error) {
 	cli, err := newEngineClient()
 	if err != nil {
 		return unavailable(err), []snapshot.Skip{{
@@ -22,10 +27,10 @@ func Collect(ctx context.Context) (snapshot.Docker, []snapshot.Skip, error) {
 	}
 	defer cli.Close()
 
-	return collectWithClient(ctx, cli)
+	return collectWithClient(ctx, cli, opts)
 }
 
-func collectWithClient(ctx context.Context, cli apiClient) (snapshot.Docker, []snapshot.Skip, error) {
+func collectWithClient(ctx context.Context, cli apiClient, opts Options) (snapshot.Docker, []snapshot.Skip, error) {
 	if err := cli.Ping(ctx); err != nil {
 		return unavailable(err), []snapshot.Skip{{
 			Component: "docker",
@@ -47,6 +52,10 @@ func collectWithClient(ctx context.Context, cli apiClient) (snapshot.Docker, []s
 	containers, containerSkips, _ := collectContainers(ctx, cli)
 	d.Containers = containers
 	skips = append(skips, containerSkips...)
+
+	if !opts.Detail {
+		return d, skips, nil
+	}
 
 	images, err := cli.ImageList(ctx, image.ListOptions{})
 	if err != nil {

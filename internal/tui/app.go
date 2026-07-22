@@ -11,6 +11,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 
 	"github.com/baselhusam/bareai-cli/internal/probe"
+	"github.com/baselhusam/bareai-cli/internal/render"
 	"github.com/baselhusam/bareai-cli/internal/snapshot"
 )
 
@@ -736,17 +737,17 @@ func (m Model) renderBody() string {
 		return m.styles.pane.Render(m.probeVP.View())
 	case TabGPU:
 		if len(m.snap.GPUs) == 0 {
-			return m.styles.pane.Render("No accelerators detected.")
+			return m.styles.pane.Render(render.EmptyHint("gpu"))
 		}
 		return m.renderSplit(m.gpuList.View(), m.gpuDetail.View())
 	case TabLLM:
 		if len(m.snap.LLMs) == 0 {
-			return m.styles.pane.Render("No LLM runtimes discovered.")
+			return m.styles.pane.Render(render.EmptyHint("llm"))
 		}
 		return m.renderSplit(m.llmList.View(), m.llmDetail.View())
 	case TabDocker:
 		if m.snap != nil && (m.snap.Docker == nil || !m.snap.Docker.Available) {
-			return m.styles.pane.Render("Docker not available.")
+			return m.styles.pane.Render(render.EmptyHint("docker"))
 		}
 		if m.snap != nil && len(dockerContainersForList(m.snap.Docker.Containers, m.dockerShowAll)) == 0 {
 			return m.renderSplit(m.dockerList.View(), "No running containers.")
@@ -754,7 +755,7 @@ func (m Model) renderBody() string {
 		return m.renderSplit(m.dockerList.View(), m.dockerDetail.View())
 	case TabDatabase:
 		if len(m.snap.Databases) == 0 {
-			return m.styles.pane.Render("No database instances discovered.")
+			return m.styles.pane.Render(render.EmptyHint("db"))
 		}
 		return m.renderSplit(m.dbList.View(), m.dbDetail.View())
 	default:

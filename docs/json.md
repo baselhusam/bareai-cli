@@ -9,7 +9,8 @@ Every inspect command supports `--json` (`-j`). Output is a single **`Snapshot`*
   "gpus": [{ "index": 0, "vendor": "nvidia", "utilization_pct": 45.0, "processes": [] }],
   "docker": { "available": true, "containers": [], "images": [], "volumes": [] },
   "llms": [{ "runtime": "ollama", "endpoint": "...", "health": { "ok": true, "latency_ms": 42 } }],
-  "correlations": [{ "endpoint": "...", "pid": 123, "gpu_index": 0, "vram_bytes": 0 }],
+  "databases": [{ "engine": "redis", "address": "127.0.0.1:6379", "health": { "ok": true } }],
+  "correlations": [{ "kind": "llm", "endpoint": "...", "models": ["llama3.2"], "gpu_index": 0, "health_ok": true }],
   "findings": [{ "id": "...", "severity": "info", "summary": "...", "why": "...", "try": "..." }],
   "skipped": [{ "component": "docker", "reason": "..." }]
 }
@@ -24,7 +25,8 @@ Every inspect command supports `--json` (`-j`). Output is a single **`Snapshot`*
 | `gpus` | gpu, status, inspect, … | Accelerator list |
 | `docker` | docker, status, inspect, … | Engine inventory |
 | `llms` | llm, probe, inspect, … | Discovered inference servers |
-| `correlations` | inspect, doctor (after enrich) | Joined endpoint ↔ resource rows |
+| `databases` | db, status, inspect, … | Local database instances |
+| `correlations` | inspect, doctor (after enrich) | Joined LLM/DB ↔ resource rows (`kind`: `llm` or `db`) |
 | `findings` | inspect, doctor | Diagnostic findings |
 | `skipped` | All | Collectors that failed with reason |
 

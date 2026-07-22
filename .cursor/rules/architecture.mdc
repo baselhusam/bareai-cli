@@ -18,10 +18,11 @@ internal/
     gpu/             # NVIDIA / AMD / Apple adapters
     docker/          # Engine API: containers, images, volumes
     llm/             # discover + probe runtimes
+    db/              # discover + probe local databases
   probe/             # HTTP health, /v1/models, one-hit chat/completions
   tui/               # Bubble Tea app (watch / browse)
-  render/            # tables, human output
-  doctor/            # optional findings (later phases)
+  render/            # tables, human output, empty hints, doctor share
+  doctor/            # ranked findings
 ```
 
 ## Collectors
@@ -29,18 +30,22 @@ internal/
 - Each collector is optional and returns `(data, err)`; aggregator records skips
 - GPU: NVML / nvidia-smi, ROCm, Apple Metal/sys — never hard-require one vendor
 - LLM discovery: process + port + Docker name/image heuristics + HTTP probes
-- Correlation: PID ↔ container ↔ GPU index ↔ endpoint URL
+- DB discovery: process + port + Docker heuristics + TCP/version probes
+- Correlation: PID ↔ container ↔ GPU index ↔ endpoint URL; DB addresses join the same `Correlations` table with `kind=db`
+- **Identity rule:** new collectors must feed `Correlations` (or an explicit skip) — no siloed panes
 
 ## Command surface (target)
 
 ```
-bareai                  # launch TUI (default) or show help — decide in implementation
+bareai                  # launch TUI (default) or show help
 bareai status
 bareai gpu
 bareai llm
 bareai docker
+bareai db
 bareai inspect
 bareai probe            # one-hit smoke test against discovered LLMs
+bareai doctor           # ranked diagnostics; --share for paste-friendly output
 bareai watch            # live TUI monitoring
 bareai --json <cmd>
 ```

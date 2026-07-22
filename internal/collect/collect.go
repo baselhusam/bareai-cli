@@ -18,6 +18,7 @@ type Options struct {
 	ListModels   bool
 	FetchMetrics bool
 	ProbeDB      bool
+	DockerDetail bool
 }
 
 // FullOptions returns options for one-shot CLI commands.
@@ -27,6 +28,7 @@ func FullOptions() Options {
 		ListModels:   true,
 		FetchMetrics: true,
 		ProbeDB:      true,
+		DockerDetail: true,
 	}
 }
 
@@ -36,7 +38,8 @@ func LightRefreshOptions() Options {
 		ProbeLLM:     true,
 		ListModels:   false,
 		FetchMetrics: true,
-		ProbeDB:      true,
+		ProbeDB:      false,
+		DockerDetail: false,
 	}
 }
 
@@ -77,7 +80,7 @@ func SnapshotWithOptions(ctx context.Context, opts Options) *snapshot.Snapshot {
 	snap.GPUs = gpus
 	snap.Skipped = append(snap.Skipped, gpuSkips...)
 
-	docker, dockerSkips, err := dockercollect.Collect(ctx)
+	docker, dockerSkips, err := dockercollect.Collect(ctx, dockercollect.Options{Detail: opts.DockerDetail})
 	if err != nil {
 		snap.Skipped = append(snap.Skipped, snapshot.Skip{
 			Component: "docker",

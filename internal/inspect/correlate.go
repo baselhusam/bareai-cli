@@ -2,8 +2,23 @@ package inspect
 
 import "github.com/baselhusam/bareai-cli/internal/snapshot"
 
-// BuildCorrelations produces denormalized correlation rows from LLM and GPU data.
-func BuildCorrelations(llms []snapshot.LLM, gpus []snapshot.GPU) []snapshot.Correlation {
+// BuildCorrelations produces denormalized correlation rows from snapshot LLM, DB, and GPU data.
+func BuildCorrelations(snap *snapshot.Snapshot) []snapshot.Correlation {
+	if snap == nil {
+		return nil
+	}
+	llmRows := buildLLMCorrelations(snap.LLMs, snap.GPUs)
+	dbRows := buildDBCorrelations(snap.Databases)
+	if len(llmRows) == 0 && len(dbRows) == 0 {
+		return nil
+	}
+	out := make([]snapshot.Correlation, 0, len(llmRows)+len(dbRows))
+	out = append(out, llmRows...)
+	out = append(out, dbRows...)
+	return out
+}
+
+func buildLLMCorrelations(llms []snapshot.LLM, gpus []snapshot.GPU) []snapshot.Correlation {
 	if len(llms) == 0 {
 		return nil
 	}
@@ -11,6 +26,7 @@ func BuildCorrelations(llms []snapshot.LLM, gpus []snapshot.GPU) []snapshot.Corr
 	out := make([]snapshot.Correlation, 0, len(llms))
 	for _, llm := range llms {
 		row := snapshot.Correlation{
+			Kind:          snapshot.CorrelationKindLLM,
 			Endpoint:      llm.Endpoint,
 			Runtime:       llm.Runtime,
 			ContainerName: llm.ContainerName,
@@ -28,9 +44,45 @@ func BuildCorrelations(llms []snapshot.LLM, gpus []snapshot.GPU) []snapshot.Corr
 				row.VRAMBytes = vram
 			}
 		}
+		if row.GPUIndex != nil {
+			row.GPUName = gpuNameForIndex(gpus, *row.GPUIndex)
+		}
 		out = append(out, row)
 	}
 	return out
+}
+
+func buildDBCorrelations(dbs []snapshot.Database) []snapshot.Correlation {
+	if len(dbs) == 0 {
+		return nil
+	}
+
+	out := make([]snapshot.Correlation, 0, len(dbs))
+	for _, db := range dbs {
+		row := snapshot.Correlation{
+			Kind:          snapshot.CorrelationKindDB,
+			Endpoint:      db.Address,
+			Runtime:       db.Engine,
+			ContainerName: db.ContainerName,
+			ContainerID:   db.ContainerID,
+			PID:           db.PID,
+		}
+		if db.Health != nil {
+			ok := db.Health.OK
+			row.HealthOK = &ok
+		}
+		out = append(out, row)
+	}
+	return out
+}
+
+func gpuNameForIndex(gpus []snapshot.GPU, index int) string {
+	for _, gpu := range gpus {
+		if gpu.Index == index {
+			return gpu.Name
+		}
+	}
+	return ""
 }
 
 func modelIDs(models []snapshot.LLMModel) []string {

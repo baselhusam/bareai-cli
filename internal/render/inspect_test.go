@@ -57,10 +57,11 @@ func TestWriteInspect(t *testing.T) {
 		"Overview",
 		"ai-box",
 		"Correlation",
-		"ENDPOINT",
+		"KIND",
 		"ollama",
 		"2.0 GiB",
 		"llama3.2",
+		"Databases",
 		"LLM runtimes",
 		"Findings",
 		"llm.multiple_runtimes",
@@ -84,7 +85,7 @@ func TestWriteInspectNarrow(t *testing.T) {
 	if err := WriteInspect(&buf, snap, InspectOptions{NoColor: true, Width: 72}); err != nil {
 		t.Fatalf("WriteInspect failed: %v", err)
 	}
-	if strings.Contains(buf.String(), "MODELS") {
-		t.Fatalf("narrow layout should omit MODELS header: %s", buf.String())
+	if strings.Contains(buf.String(), "ENDPOINT") {
+		t.Fatalf("narrow layout should use theater columns: %s", buf.String())
 	}
 }

@@ -30,7 +30,7 @@ func WriteDB(w io.Writer, snap *snapshot.Snapshot, noColor bool) error {
 	}
 
 	if len(snap.Databases) == 0 {
-		if _, err := fmt.Fprintln(w, "No database instances discovered."); err != nil {
+		if _, err := fmt.Fprintf(w, "%s\n", EmptyHint("db")); err != nil {
 			return err
 		}
 		return writeSkipped(w, snap.Skipped)
@@ -109,7 +109,7 @@ func dbSourceLabel(db snapshot.Database) string {
 
 func writeDBSummary(w io.Writer, dbs []snapshot.Database) error {
 	if len(dbs) == 0 {
-		if _, err := fmt.Fprintln(w, "DB:          none discovered"); err != nil {
+		if _, err := fmt.Fprintf(w, "DB:          %s\n", EmptyHint("db")); err != nil {
 			return err
 		}
 		return nil
