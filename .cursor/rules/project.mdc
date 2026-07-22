@@ -12,7 +12,7 @@ CLI + TUI for solo AI engineers doing AIOps on one bare-metal box.
 - **Name:** `bareai` (binary / package name)
 - **Persona:** solo engineer on a single machine (SSH / local)
 - **UX:** kubectl-like subcommands **and** interactive TUI (Bubble Tea)
-- **Mode:** inspect / probe only — no mutate (no stop/restart/deploy yet)
+- **Mode:** inspect / probe by default; confirm-gated mutate via `bareai do` only (Docker-scoped)
 - **Allowed probes:** status reads, discovery, health checks, one-hit LLM smoke tests
 - **Platforms:** macOS, Linux, Windows
 - **GPUs:** NVIDIA, AMD, Apple Silicon (degrade gracefully when absent)
@@ -31,7 +31,7 @@ CLI + TUI for solo AI engineers doing AIOps on one bare-metal box.
 1. Degrade, don't die — missing GPU/Docker/LLM still useful
 2. Correlate — join host ↔ GPU ↔ container ↔ model/endpoint ↔ database; every collector feeds `Correlations` or skips
 3. Machine-readable — every command supports `--json` for scripts/agents
-4. Read-mostly — no mutating Docker/runtime ops in current phases
+4. Read-mostly — mutate only through `bareai do` with confirmation; MCP stays read-only
 5. Single static binary — no runtime Python/Node dependency
 
 ## Out of scope (for now)

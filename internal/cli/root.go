@@ -30,8 +30,8 @@ var rootCmd = &cobra.Command{
 	Short: "Inspect bare-metal AI infrastructure",
 	Long: `bareai is a CLI and TUI for solo AI engineers doing AIOps on a single bare-metal box.
 
-Inspect host resources, GPUs, Docker, local databases, and LLM runtimes (Ollama, vLLM, SGLang, Triton, etc.)
-without mutating the system.`,
+Inspect host resources, GPUs, Docker, local databases, and LLM runtimes (Ollama, vLLM, SGLang, Triton, etc.).
+Use bareai do for confirm-gated fixes tied to doctor findings; all other commands are read-only.`,
 	SilenceUsage: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if !term.IsTerminal(int(os.Stdout.Fd())) {
@@ -71,6 +71,7 @@ func init() {
 		probeCmd,
 		watchCmd,
 		doctorCmd,
+		doCmd,
 		mcpCmd,
 		configCmd,
 		versionCmd,

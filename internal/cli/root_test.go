@@ -21,6 +21,7 @@ func TestRootCommand(t *testing.T) {
 		"probe":      false,
 		"watch":      false,
 		"doctor":     false,
+		"do":         false,
 		"mcp":        false,
 		"config":     false,
 		"version":    false,

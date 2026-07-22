@@ -23,7 +23,7 @@ func DB(snap *snapshot.Snapshot) []snapshot.Finding {
 			if db.Engine == "postgres" {
 				try = fmt.Sprintf("pg_isready -h %s  ·  bareai db --json", db.Address)
 			}
-			out = append(out, finding(
+			out = append(out, findingWithDo(
 				"db.unreachable",
 				SeverityWarn,
 				"db",
@@ -31,6 +31,7 @@ func DB(snap *snapshot.Snapshot) []snapshot.Finding {
 				fmt.Sprintf("%s (%s) is unreachable", db.Name, db.Address),
 				"TCP/version probe failed; service may be down or blocked.",
 				try,
+				containerOffers(db.ContainerID, db.ContainerName, "logs", "restart"),
 			))
 		}
 

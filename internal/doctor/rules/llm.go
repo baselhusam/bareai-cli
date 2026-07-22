@@ -25,7 +25,9 @@ func LLM(snap *snapshot.Snapshot) []snapshot.Finding {
 			if llm.Runtime == probe.RuntimeOllama {
 				try = fmt.Sprintf("curl -s %s/api/tags  ·  systemctl status ollama  ·  docker ps --filter name=ollama", llm.Endpoint)
 			}
-			out = append(out, finding(
+			do := containerOffers(llm.ContainerID, llm.ContainerName, "logs", "restart")
+			do = append(do, endpointOffer(llm.Endpoint, "reprobe")...)
+			out = append(out, findingWithDo(
 				"llm.unreachable",
 				SeverityWarn,
 				"llm",
@@ -33,12 +35,13 @@ func LLM(snap *snapshot.Snapshot) []snapshot.Finding {
 				fmt.Sprintf("%s (%s) is unreachable", llm.Name, llm.Endpoint),
 				"Health probe failed; endpoint may be down or blocked.",
 				try,
+				do,
 			))
 			continue
 		}
 
 		if llm.Health != nil && llm.Health.OK && len(llm.Models) == 0 {
-			out = append(out, finding(
+			out = append(out, findingWithDo(
 				"llm.no_models",
 				SeverityWarn,
 				"llm",
@@ -46,6 +49,7 @@ func LLM(snap *snapshot.Snapshot) []snapshot.Finding {
 				fmt.Sprintf("%s (%s) is healthy but no models are loaded", llm.Name, llm.Endpoint),
 				"Server responds but model list is empty.",
 				fmt.Sprintf("bareai llm --json  ·  bareai probe --endpoint %s", llm.Endpoint),
+				endpointOffer(llm.Endpoint, "reprobe"),
 			))
 		}
 

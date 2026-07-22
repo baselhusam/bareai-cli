@@ -19,7 +19,8 @@ internal/
     docker/          # Engine API: containers, images, volumes
     llm/             # discover + probe runtimes
     db/              # discover + probe local databases
-  mcp/                 # MCP server (agent tools)
+  mcp/                 # MCP server (agent tools, read-only)
+  action/              # confirm-gated do verbs (Docker-scoped mutate)
   probe/             # HTTP health, /v1/models, one-hit chat/completions
   tui/               # Bubble Tea app (watch / browse)
   render/            # tables, human output, empty hints, doctor share
@@ -47,9 +48,10 @@ bareai db
 bareai inspect
 bareai probe            # one-hit smoke test against discovered LLMs
 bareai doctor           # ranked diagnostics; --share for paste-friendly output
+bareai do               # confirm-gated actions tied to findings (Phase 12)
 bareai mcp              # MCP server for coding agents (stdio)
 bareai watch            # live TUI monitoring
 bareai --json <cmd>
 ```
 
-Prefer shared collector code; commands, TUI, and MCP must not re-implement discovery.
+Prefer shared collector code; commands, TUI, and MCP must not re-implement discovery. Mutations go only through `internal/action` via `bareai do`.

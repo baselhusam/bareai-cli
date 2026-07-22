@@ -92,6 +92,11 @@ func writeDoctorFinding(w io.Writer, f snapshot.Finding, width int) error {
 			}
 		}
 	}
+	for _, line := range FormatFindingDo(f, width) {
+		if _, err := fmt.Fprintln(w, line); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

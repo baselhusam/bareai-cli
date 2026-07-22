@@ -37,7 +37,7 @@ It collects host resources, GPUs, Docker, local LLM runtimes (Ollama, vLLM, SGLa
 
 | | |
 |---|---|
-| **Mode** | Inspect / probe only — no stop, restart, deploy, or other mutating ops |
+| **Mode** | Inspect / probe by default; confirm-gated fixes via `bareai do` (Docker-scoped) |
 | **Persona** | One engineer, one machine (SSH or local) |
 | **Platforms** | Linux, macOS, Windows |
 | **GPUs** | NVIDIA, AMD, Apple Silicon (degrades gracefully when absent) |
@@ -94,7 +94,8 @@ On a TTY, bare `bareai` launches the dashboard. In pipes/CI it prints help; `bar
 | `db` | Local databases (Postgres, Redis, Mongo, …) |
 | `probe` | One-hit smoke tests |
 | `inspect` | Full correlated report |
-| `doctor` | Ranked diagnostics (read-only hints) |
+| `doctor` | Ranked diagnostics + suggested actions |
+| `do` | Confirm-gated fixes tied to findings |
 | `mcp` | MCP server for coding agents (stdio) |
 | `config path` | Resolved config file path |
 | `version` | Build metadata |
@@ -120,6 +121,7 @@ Enable under **Settings → Pages**: Deploy from a branch → **main** → **/do
 | [Interactive TUI](docs/tui.md) | Tabs and keybindings |
 | [JSON & snapshot](docs/json.md) | `--json` output model |
 | [Agents & MCP](docs/agents.md) | MCP tools and agent contract |
+| [Actions (`bareai do`)](docs/actions.md) | Confirm-gated finding-scoped fixes |
 | [Platforms](docs/platforms.md) | Linux / macOS / Windows matrix |
 | [Workflows](docs/workflows.md) | Common recipes |
 | [Development](docs/development.md) | Build, test, lint |

@@ -16,6 +16,7 @@ type Config struct {
 	Probe     Probe     `yaml:"probe"`
 	Discovery Discovery `yaml:"discovery"`
 	Doctor    Doctor    `yaml:"doctor"`
+	Actions   Actions   `yaml:"actions"`
 	Output    Output    `yaml:"output"`
 }
 
@@ -43,6 +44,14 @@ type Doctor struct {
 	MinSeverity string `yaml:"min_severity"`
 }
 
+// Actions holds bareai do defaults.
+type Actions struct {
+	Confirm      bool `yaml:"confirm"`
+	AutoReprobe  bool `yaml:"auto_reprobe"`
+	LogTail      int  `yaml:"log_tail"`
+	LogMaxBytes  int  `yaml:"log_max_bytes"`
+}
+
 // Output holds output formatting options.
 type Output struct {
 	JSONIndent bool `yaml:"json_indent"`
@@ -65,6 +74,12 @@ func Default() Config {
 		},
 		Doctor: Doctor{
 			MinSeverity: "info",
+		},
+		Actions: Actions{
+			Confirm:     true,
+			AutoReprobe: true,
+			LogTail:     100,
+			LogMaxBytes: 262144,
 		},
 		Output: Output{
 			JSONIndent: true,
@@ -124,6 +139,12 @@ func Load() (Config, error) {
 	}
 	if cfg.Doctor.MinSeverity == "" {
 		cfg.Doctor.MinSeverity = Default().Doctor.MinSeverity
+	}
+	if cfg.Actions.LogTail <= 0 {
+		cfg.Actions.LogTail = Default().Actions.LogTail
+	}
+	if cfg.Actions.LogMaxBytes <= 0 {
+		cfg.Actions.LogMaxBytes = Default().Actions.LogMaxBytes
 	}
 	return cfg, nil
 }

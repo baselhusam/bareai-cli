@@ -44,3 +44,7 @@ bareai gpu --json | jq '.gpus[] | {index, util: .utilization_pct, mem: .memory_u
 Types are defined in [`internal/snapshot/snapshot.go`](../internal/snapshot/snapshot.go).
 
 `bareai inspect --json` adds `schema_version` (currently `1.0`) for agent contracts. MCP tool responses wrap payloads in a richer envelope — see [agents.md](agents.md).
+
+## Action results (`bareai do --json`)
+
+Confirm-gated actions return an `ActionResult` with `schema_version`, `verb`, `finding_id`, `target`, `before`/`after`, and `ok`. See [actions.md](actions.md).

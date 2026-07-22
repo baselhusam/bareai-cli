@@ -44,3 +44,9 @@ func finding(id, severity, category string, rank int, summary, why, try string) 
 		Try:      try,
 	}
 }
+
+func findingWithDo(id, severity, category string, rank int, summary, why, try string, do []snapshot.ActionOffer) snapshot.Finding {
+	f := finding(id, severity, category, rank, summary, why, try)
+	f.Do = do
+	return f
+}

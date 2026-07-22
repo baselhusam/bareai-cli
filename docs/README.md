@@ -10,6 +10,7 @@ Product site (GitHub Pages): **[site/](site/)** → [baselhusam.github.io/bareai
 | [Interactive TUI](tui.md) | Dashboard layout and keyboard shortcuts |
 | [JSON & snapshot](json.md) | Machine-readable output and Snapshot model |
 | [Agents & MCP](agents.md) | MCP server, tool catalog, Cursor/Claude setup, schema contract |
+| [Actions (`bareai do`)](actions.md) | Confirm-gated finding-scoped fixes |
 | [Platforms](platforms.md) | Linux / macOS / Windows capability matrix |
 | [Workflows](workflows.md) | Common day-to-day recipes |
 | [Development](development.md) | Build, test, lint, release |

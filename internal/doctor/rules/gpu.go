@@ -57,7 +57,8 @@ func GPU(snap *snapshot.Snapshot) []snapshot.Finding {
 		usedPct := float64(gpu.MemoryUsed) / float64(gpu.MemoryTotal)
 		if usedPct > 0.9 {
 			free := gpu.MemoryTotal - gpu.MemoryUsed
-			out = append(out, finding(
+			do := gpuContainerOffers(snap, gpu.Index, "logs", "stop", "free-gpu")
+			out = append(out, findingWithDo(
 				"gpu.vram_high",
 				SeverityWarn,
 				"gpu",
@@ -65,13 +66,15 @@ func GPU(snap *snapshot.Snapshot) []snapshot.Finding {
 				fmt.Sprintf("GPU %d VRAM usage above 90%% (%s / %s)", gpu.Index, formatBytes(gpu.MemoryUsed), formatBytes(gpu.MemoryTotal)),
 				fmt.Sprintf("Only %s free; new model loads may OOM.", formatBytes(free)),
 				fmt.Sprintf("bareai gpu --json  ·  nvidia-smi -i %d", gpu.Index),
+				do,
 			))
 		}
 
 		if usedPct > 0.5 && gpu.Utilization != nil && *gpu.Utilization < 5 {
 			for _, llm := range snap.LLMs {
 				if llm.Health != nil && llm.Health.OK && llm.GPUIndex != nil && *llm.GPUIndex == gpu.Index {
-					out = append(out, finding(
+					do := gpuContainerOffers(snap, gpu.Index, "logs", "stop", "free-gpu")
+					out = append(out, findingWithDo(
 						"gpu.idle_while_llm",
 						SeverityInfo,
 						"gpu",
@@ -79,6 +82,7 @@ func GPU(snap *snapshot.Snapshot) []snapshot.Finding {
 						fmt.Sprintf("GPU %d has high VRAM (%.0f%%) but low utilization (%.0f%%)", gpu.Index, usedPct*100, *gpu.Utilization),
 						"VRAM is reserved but the GPU may be waiting on I/O or batching.",
 						fmt.Sprintf("bareai llm --json  ·  nvidia-smi -i %d", gpu.Index),
+						do,
 					))
 					break
 				}
@@ -87,4 +91,15 @@ func GPU(snap *snapshot.Snapshot) []snapshot.Finding {
 	}
 
 	return out
+}
+
+func gpuContainerOffers(snap *snapshot.Snapshot, gpuIndex int, verbs ...string) []snapshot.ActionOffer {
+	for _, llm := range snap.LLMs {
+		if llm.GPUIndex != nil && *llm.GPUIndex == gpuIndex {
+			if offers := containerOffers(llm.ContainerID, llm.ContainerName, verbs...); len(offers) > 0 {
+				return offers
+			}
+		}
+	}
+	return nil
 }

@@ -208,14 +208,14 @@ CLI + TUI for solo AI engineers on bare-metal AI boxes: host, GPUs (NVIDIA / AMD
 
 **Goal:** After diagnosis, close the loop with a tiny set of confirm-gated actions — a reward after trust, not a mutate platform.
 
-- [ ] Explicit confirmations (and dry-run where useful) for ~5 daily actions, e.g.:
+- [x] Explicit confirmations (and dry-run where useful) for ~5 daily actions, e.g.:
   - restart / stop a discovered container or endpoint tenant
   - free a stuck GPU tenant (documented, safe path)
   - re-probe after a change
   - open / tail relevant logs (read path first; mutate only where clearly scoped)
-- [ ] Every mutate surfaces what will change and why (doctor-style what/why/try → do)
-- [ ] Audit-friendly output (`--json` result of the action); never silent side effects
-- [ ] Stay out of general Docker/systemd wrappers — only actions that follow a bareai finding
+- [x] Every mutate surfaces what will change and why (doctor-style what/why/try → do)
+- [x] Audit-friendly output (`--json` result of the action); never silent side effects
+- [x] Stay out of general Docker/systemd wrappers — only actions that follow a bareai finding
 
 **Exit:** Diagnose → confirm → fix for the common hung-box cases without leaving bareai; still not a fleet orchestrator.
 

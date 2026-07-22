@@ -13,6 +13,18 @@ bareai doctor --json | jq '.findings[]'
 
 Full guide: [agents.md](agents.md)
 
+## Diagnose → fix (confirm-gated)
+
+```bash
+bareai doctor
+bareai do list
+bareai do plan restart --finding llm.unreachable --container ollama
+bareai do restart --finding llm.unreachable --container ollama --yes
+bareai do reprobe --finding llm.unreachable --endpoint http://127.0.0.1:11434
+```
+
+Full guide: [actions.md](actions.md)
+
 ## Paste a doctor report into an issue
 
 ```bash

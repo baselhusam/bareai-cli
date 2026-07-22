@@ -13,6 +13,7 @@
 | `probe` | One-hit smoke tests against discovered or explicit endpoints |
 | `inspect` | Full correlated report (overview, correlation table, sections, findings) |
 | `doctor` | Ranked diagnostics with read-only what/why/try hints |
+| `do` | Confirm-gated actions tied to doctor findings |
 | `mcp` | MCP server for coding agents (stdio transport) |
 | `watch` | Live TUI with configurable refresh interval |
 | `config path` | Print resolved config file path |
@@ -297,7 +298,7 @@ bareai doctor --share
 bareai doctor --json
 ```
 
-**What it does:** Runs the full collectors + correlation, then applies ranked diagnostic rules. Reports findings with severity, explanation, and suggested next steps. **Suggestions are read-only** — `bareai` never mutates your system.
+**What it does:** Runs the full collectors + correlation, then applies ranked diagnostic rules. Reports findings with severity, explanation, and suggested next steps. Structured `do` offers appear for docker-scoped fixes; use **`bareai do`** to execute confirm-gated actions.
 
 | Flag | Default | Description |
 |------|---------|-------------|
@@ -343,6 +344,35 @@ Runs a read-only MCP server on stdin/stdout. Configure your agent with:
 ```
 
 Example config: [`examples/cursor-mcp.json`](../examples/cursor-mcp.json)
+
+---
+
+## do (confirm-gated actions)
+
+See **[actions.md](actions.md)** for the full safety model and JSON schema.
+
+```bash
+bareai do list
+bareai do plan restart --finding llm.unreachable --container ollama
+bareai do restart --finding llm.unreachable --container ollama --yes
+bareai do logs --finding llm.unreachable --tail 200
+bareai do reprobe --finding llm.no_models --endpoint http://127.0.0.1:11434
+bareai do free-gpu --finding gpu.vram_high --container vllm --yes
+```
+
+| Flag | Description |
+|------|-------------|
+| `--finding` | Doctor finding ID (required for mutating verbs) |
+| `--container` | Container name/ID from snapshot |
+| `--endpoint` | LLM endpoint for reprobe |
+| `--tail` | Log lines for `logs` (default from config) |
+| `--yes` | Skip interactive confirmation |
+| `--dry-run` | Preview only; no side effects |
+| `--no-reprobe` | Skip auto reprobe after restart/free-gpu |
+
+Mutations are **Docker-scoped only** in Phase 12. MCP remains read-only.
+
+Example workflow: [`examples/do-workflows.sh`](../examples/do-workflows.sh)
 
 ---
 

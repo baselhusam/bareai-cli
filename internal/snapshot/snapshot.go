@@ -206,13 +206,22 @@ func CorrelationKindOf(c Correlation) string {
 
 // Finding holds a diagnostic finding from inspect or doctor.
 type Finding struct {
-	ID       string `json:"id"`
-	Summary  string `json:"summary"`
-	Severity string `json:"severity,omitempty"`
-	Why      string `json:"why,omitempty"`
-	Try      string `json:"try,omitempty"`
-	Category string `json:"category,omitempty"`
-	Rank     int    `json:"rank,omitempty"`
+	ID       string        `json:"id"`
+	Summary  string        `json:"summary"`
+	Severity string        `json:"severity,omitempty"`
+	Why      string        `json:"why,omitempty"`
+	Try      string        `json:"try,omitempty"`
+	Do       []ActionOffer `json:"do,omitempty"`
+	Category string        `json:"category,omitempty"`
+	Rank     int           `json:"rank,omitempty"`
+}
+
+// ActionOffer is a structured bareai do suggestion tied to a finding.
+type ActionOffer struct {
+	Verb       string `json:"verb"`
+	TargetKind string `json:"target_kind"`
+	TargetRef  string `json:"target_ref"`
+	Summary    string `json:"summary,omitempty"`
 }
 
 // Skip records a collector that could not run.
