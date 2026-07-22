@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="260" viewBox="0 0 1280 260" fill="none">
+  
+  <rect width="1280" height="260" fill="#0b0d08"></rect>
+  <rect x="0" y="259" width="1280" height="1" fill="#1e2417"></rect>
+  <g transform="translate(96,72) scale(1.6)">
+  <rect x="10" y="14" width="52" height="8" rx="4" fill="#eef0e6"></rect>
+  <rect x="10" y="28" width="40" height="8" rx="4" fill="#8bd450"></rect>
+  <rect x="10" y="42" width="46" height="8" rx="4" fill="#5c8a2e"></rect>
+  <rect x="10" y="56" width="30" height="8" rx="4" fill="#3d5a20"></rect>
+  </g>
+  <text x="230" y="130" font-family="&#39;Space Grotesk&#39;,&#39;Segoe UI&#39;,Arial,sans-serif" font-size="58" font-weight="700" letter-spacing="-1.8" fill="#eef0e6">bare<tspan fill="#8bd450">ai</tspan></text>
+  <text x="232" y="176" font-family="&#39;JetBrains Mono&#39;,&#39;SFMono-Regular&#39;,Consolas,monospace" font-size="22" fill="#9aa48a">a read-only CLI + TUI for solo AI engineers on bare metal</text>
+</svg>

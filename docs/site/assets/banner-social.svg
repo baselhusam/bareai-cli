@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640" fill="none">
+  
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#8bd450" stop-opacity="0.12"></stop>
+      <stop offset="70%" stop-color="#8bd450" stop-opacity="0"></stop>
+    </radialGradient>
+  </defs>
+  <rect width="1280" height="640" fill="#0b0d08"></rect>
+  <circle cx="1180" cy="80" r="320" fill="url(#glow)"></circle>
+  <g transform="translate(110,96) scale(1.5)">
+  <rect x="10" y="14" width="52" height="8" rx="4" fill="#eef0e6"></rect>
+  <rect x="10" y="28" width="40" height="8" rx="4" fill="#8bd450"></rect>
+  <rect x="10" y="42" width="46" height="8" rx="4" fill="#5c8a2e"></rect>
+  <rect x="10" y="56" width="30" height="8" rx="4" fill="#3d5a20"></rect>
+  </g>
+  <text x="220" y="150" font-family="&#39;Space Grotesk&#39;,&#39;Segoe UI&#39;,Arial,sans-serif" font-size="52" font-weight="700" letter-spacing="-1.6" fill="#eef0e6">bare<tspan fill="#8bd450">ai</tspan></text>
+  <text x="112" y="380" font-family="&#39;Space Grotesk&#39;,&#39;Segoe UI&#39;,Arial,sans-serif" font-size="54" font-weight="600" letter-spacing="-1.4" fill="#eef0e6">See what your bare-metal machine</text>
+  <text x="112" y="448" font-family="&#39;Space Grotesk&#39;,&#39;Segoe UI&#39;,Arial,sans-serif" font-size="54" font-weight="600" letter-spacing="-1.4" fill="#eef0e6">is doing — right now.</text>
+  <text x="112" y="512" font-family="&#39;JetBrains Mono&#39;,&#39;SFMono-Regular&#39;,Consolas,monospace" font-size="24" fill="#8bd450">host · gpu · docker · ollama · vllm · sglang · triton</text>
+  <text x="112" y="580" font-family="&#39;JetBrains Mono&#39;,&#39;SFMono-Regular&#39;,Consolas,monospace" font-size="22" fill="#5f6b52">read-only · observe &amp; probe, never mutate</text>
+</svg>

@@ -135,7 +135,7 @@ CLI + TUI for solo AI engineers inspecting bare-metal AI boxes: host, GPUs (NVID
 - [x] Linux: primary AIOps path (full collectors)
 - [x] Integration smoke tests / manual checklist per OS
 
-**Exit:** Capability matrix in README; no surprise crashes on unsupported features.
+**Exit:** Capability matrix in docs/platforms.md; no surprise crashes on unsupported features.
 
 ---
 

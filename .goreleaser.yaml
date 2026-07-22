@@ -68,7 +68,7 @@ release:
 
     **Homebrew:** `brew tap baselhusam/tap && brew install bareai`
 
-    **Debian/Ubuntu:** See [Cloudsmith APT setup](https://github.com/baselhusam/bareai-cli#debian--ubuntu).
+    **Debian/Ubuntu:** See [Cloudsmith APT setup](https://github.com/baselhusam/bareai-cli/blob/main/docs/install.md#debian--ubuntu-cloudsmith-apt).
 
     **winget:** `winget install baselhusam.bareai`
 
