@@ -191,13 +191,16 @@ CLI + TUI for solo AI engineers on bare-metal AI boxes: host, GPUs (NVIDIA / AMD
 
 **Goal:** Coding agents and scripts treat bareai as ground truth for the machine — not `nvidia-smi` + `docker ps` + curl. `--json` got us to the door; a first-class agent contract walks through it.
 
-- [ ] MCP server exposing stable tools: list endpoints/models, inspect correlation, probe latency/health, surface doctor findings
-- [ ] Documented agent contract on top of the shared `Snapshot` schema (versioned, predictable field names, skip reasons)
-- [ ] Agent-oriented examples: Cursor / Claude / scripts calling bareai instead of ad-hoc shell soup
-- [ ] Keep CLI/TUI/MCP on one brain — no parallel discovery implementations
-- [ ] Optional light Prometheus export of bareai’s own snapshot signals (for stacks that already scrape)
+- [ ] MCP server (`bareai mcp`, stdio) using official `modelcontextprotocol/go-sdk`
+- [ ] Six read-only tools: `bareai_snapshot`, `bareai_correlations`, `bareai_llms`, `bareai_databases`, `bareai_doctor`, `bareai_probe`
+- [ ] Versioned agent envelope (`schema_version`, `bareai_version`, `collected_at`, `data`) on all tool responses
+- [ ] Documented agent contract in `docs/agents.md` (stable fields, skip reasons, schema changelog)
+- [ ] Agent-oriented examples: Cursor MCP config, Claude Desktop snippet, shell `--json` fallback recipes
+- [ ] Keep CLI/TUI/MCP on one brain — handlers call collect/inspect/doctor/probe in-process; no subprocess soup
 
-**Exit:** An agent can answer “what’s on this box and is inference healthy?” via bareai alone; uninstall starts to hurt.
+**Exit:** An agent can answer “what’s on this box and is inference healthy?” via bareai MCP alone; uninstall starts to hurt.
+
+**Out of scope for Phase 11:** Prometheus metrics export (backlog), HTTP/SSE MCP transport, multi-host.
 
 ---
 
@@ -234,6 +237,8 @@ CLI + TUI for solo AI engineers on bare-metal AI boxes: host, GPUs (NVIDIA / AMD
 
 - Kubernetes / pod awareness (secondary to bare metal)
 - Broader fleet / multi-box beyond one remote
+- Prometheus metrics export of bareai snapshot signals
+- HTTP/SSE MCP transport (stdio only in Phase 11)
 - Official distro packages (Debian/Ubuntu archives)
 - Scoop formula (winget already covered)
 - Deeper vendor GPU parity beyond Phase 10 dignity pass
