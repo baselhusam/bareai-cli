@@ -191,12 +191,12 @@ CLI + TUI for solo AI engineers on bare-metal AI boxes: host, GPUs (NVIDIA / AMD
 
 **Goal:** Coding agents and scripts treat bareai as ground truth for the machine — not `nvidia-smi` + `docker ps` + curl. `--json` got us to the door; a first-class agent contract walks through it.
 
-- [ ] MCP server (`bareai mcp`, stdio) using official `modelcontextprotocol/go-sdk`
-- [ ] Six read-only tools: `bareai_snapshot`, `bareai_correlations`, `bareai_llms`, `bareai_databases`, `bareai_doctor`, `bareai_probe`
-- [ ] Versioned agent envelope (`schema_version`, `bareai_version`, `collected_at`, `data`) on all tool responses
-- [ ] Documented agent contract in `docs/agents.md` (stable fields, skip reasons, schema changelog)
-- [ ] Agent-oriented examples: Cursor MCP config, Claude Desktop snippet, shell `--json` fallback recipes
-- [ ] Keep CLI/TUI/MCP on one brain — handlers call collect/inspect/doctor/probe in-process; no subprocess soup
+- [x] MCP server (`bareai mcp`, stdio) using official `modelcontextprotocol/go-sdk`
+- [x] Six read-only tools: `bareai_snapshot`, `bareai_correlations`, `bareai_llms`, `bareai_databases`, `bareai_doctor`, `bareai_probe`
+- [x] Versioned agent envelope (`schema_version`, `bareai_version`, `collected_at`, `data`) on all tool responses
+- [x] Documented agent contract in `docs/agents.md` (stable fields, skip reasons, schema changelog)
+- [x] Agent-oriented examples: Cursor MCP config, Claude Desktop snippet, shell `--json` fallback recipes
+- [x] Keep CLI/TUI/MCP on one brain — handlers call collect/inspect/doctor/probe in-process; no subprocess soup
 
 **Exit:** An agent can answer “what’s on this box and is inference healthy?” via bareai MCP alone; uninstall starts to hurt.
 

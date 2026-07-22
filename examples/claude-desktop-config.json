@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "bareai": {
+      "command": "bareai",
+      "args": ["mcp"]
+    }
+  }
+}

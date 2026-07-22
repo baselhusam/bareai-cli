@@ -10,7 +10,7 @@ bareai-doctor - Run ranked diagnostics with read-only suggestions
 
 
 .SH DESCRIPTION
-Analyze host, GPU, Docker, and LLM state and report ranked findings with what/why/try hints.
+Analyze host, GPU, Docker, LLM, and database state and report ranked findings with what/why/try hints.
 
 
 .SH OPTIONS
@@ -20,6 +20,10 @@ Analyze host, GPU, Docker, and LLM state and report ranked findings with what/wh
 .PP
 \fB--severity\fP="info"
 	minimum severity to show (info|warn|critical)
+
+.PP
+\fB--share\fP[=false]
+	paste-friendly report for GitHub issues, Discord, or gists
 
 
 .SH OPTIONS INHERITED FROM PARENT COMMANDS
@@ -39,6 +43,7 @@ Analyze host, GPU, Docker, and LLM state and report ranked findings with what/wh
 .EX
   bareai doctor
   bareai doctor --severity warn
+  bareai doctor --share
   bareai doctor --json | jq '.findings[] | select(.severity=="warn")'
 .EE
 

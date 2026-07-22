@@ -71,6 +71,7 @@ func init() {
 		probeCmd,
 		watchCmd,
 		doctorCmd,
+		mcpCmd,
 		configCmd,
 		versionCmd,
 		completionCmd,

@@ -13,6 +13,7 @@
 | `probe` | One-hit smoke tests against discovered or explicit endpoints |
 | `inspect` | Full correlated report (overview, correlation table, sections, findings) |
 | `doctor` | Ranked diagnostics with read-only what/why/try hints |
+| `mcp` | MCP server for coding agents (stdio transport) |
 | `watch` | Live TUI with configurable refresh interval |
 | `config path` | Print resolved config file path |
 | `version` | Print version, commit, build date, GOOS/GOARCH |
@@ -324,6 +325,24 @@ Filter in JSON:
 ```bash
 bareai doctor --json | jq '.findings[] | select(.severity=="warn")'
 ```
+
+---
+
+## Agents and MCP
+
+See **[agents.md](agents.md)** for the full agent contract, tool catalog, and Cursor/Claude setup.
+
+```bash
+bareai mcp
+```
+
+Runs a read-only MCP server on stdin/stdout. Configure your agent with:
+
+```json
+{ "command": "bareai", "args": ["mcp"] }
+```
+
+Example config: [`examples/cursor-mcp.json`](../examples/cursor-mcp.json)
 
 ---
 

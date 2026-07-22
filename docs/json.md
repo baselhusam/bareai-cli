@@ -4,6 +4,7 @@ Every inspect command supports `--json` (`-j`). Output is a single **`Snapshot`*
 
 ```json
 {
+  "schema_version": "1.0",
   "collected_at": "2026-07-22T12:00:00Z",
   "host": { "hostname": "...", "mem_total_bytes": 0, "load1": 0.0 },
   "gpus": [{ "index": 0, "vendor": "nvidia", "utilization_pct": 45.0, "processes": [] }],
@@ -41,3 +42,5 @@ bareai gpu --json | jq '.gpus[] | {index, util: .utilization_pct, mem: .memory_u
 ```
 
 Types are defined in [`internal/snapshot/snapshot.go`](../internal/snapshot/snapshot.go).
+
+`bareai inspect --json` adds `schema_version` (currently `1.0`) for agent contracts. MCP tool responses wrap payloads in a richer envelope — see [agents.md](agents.md).

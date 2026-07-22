@@ -1,5 +1,18 @@
 # Common workflows
 
+## Use bareai from an agent (MCP)
+
+```bash
+# Add to Cursor MCP settings (see examples/cursor-mcp.json)
+bareai mcp
+
+# Or shell fallback without MCP
+bareai inspect --json | jq '.correlations'
+bareai doctor --json | jq '.findings[]'
+```
+
+Full guide: [agents.md](agents.md)
+
 ## Paste a doctor report into an issue
 
 ```bash

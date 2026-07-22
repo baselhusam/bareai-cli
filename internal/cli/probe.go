@@ -5,13 +5,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	dockercollect "github.com/baselhusam/bareai-cli/internal/collect/docker"
-	gpucollect "github.com/baselhusam/bareai-cli/internal/collect/gpu"
-	llmcollect "github.com/baselhusam/bareai-cli/internal/collect/llm"
 	"github.com/baselhusam/bareai-cli/internal/config"
-	"github.com/baselhusam/bareai-cli/internal/probe"
+	bareaimcp "github.com/baselhusam/bareai-cli/internal/mcp"
 	"github.com/baselhusam/bareai-cli/internal/render"
-	"github.com/baselhusam/bareai-cli/internal/snapshot"
 )
 
 var probeOpts struct {
@@ -31,64 +27,12 @@ var probeCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(cmd.Context(), opts.Timeout)
 		defer cancel()
 
-		snap := snapshot.New()
-		client := probe.NewClient(ctx)
-
-		if probeOpts.Endpoint != "" {
-			llm := snapshot.LLM{
-				Endpoint: probeOpts.Endpoint,
-				Runtime:  probeOpts.Runtime,
-				Name:     probeOpts.Runtime,
-			}
-			adapter := probe.AdapterForRuntime(probeOpts.Runtime)
-			if adapter == nil {
-				adapter = probe.DetectAdapter(ctx, client, probeOpts.Endpoint)
-			}
-			if adapter == nil {
-				snap.Skipped = append(snap.Skipped, snapshot.Skip{
-					Component: "probe",
-					Reason:    "unknown runtime for endpoint",
-				})
-			} else {
-				llm.Runtime = adapter.Runtime()
-				llm.Name = llm.Runtime
-				if probeOpts.Model == "" {
-					if models, err := adapter.ListModels(ctx, client, llm.Endpoint); err == nil {
-						llm.Models = models
-					}
-				}
-				result := probe.Smoke(ctx, client, llm, adapter, probeOpts.Model, probeOpts.Prompt)
-				llm.Probe = &result
-				snap.LLMs = []snapshot.LLM{llm}
-			}
-		} else {
-			docker, dockerSkips, err := dockercollect.Collect(ctx, dockercollect.Options{Detail: false})
-			snap.Docker = &docker
-			snap.Skipped = append(snap.Skipped, dockerSkips...)
-			if err != nil {
-				snap.Skipped = append(snap.Skipped, snapshot.Skip{
-					Component: "docker",
-					Reason:    err.Error(),
-				})
-			}
-
-			gpus, gpuSkips := gpucollect.SnapshotGPU(ctx)
-			snap.GPUs = gpus
-			snap.Skipped = append(snap.Skipped, gpuSkips...)
-
-			llms, llmSkips, err := llmcollect.Collect(ctx, llmcollect.Input{
-				Docker:       snap.Docker,
-				GPUs:         snap.GPUs,
-				Probe:        true,
-				ListModels:   true,
-				FetchMetrics: true,
-			})
-			if err != nil {
-				return err
-			}
-			snap.Skipped = append(snap.Skipped, llmSkips...)
-			snap.LLMs = probe.SmokeAll(ctx, client, llms, probeOpts.Model, probeOpts.Prompt)
-		}
+		snap := bareaimcp.RunProbeSnapshot(ctx, bareaimcp.ProbeOptions{
+			Endpoint: probeOpts.Endpoint,
+			Runtime:  probeOpts.Runtime,
+			Model:    probeOpts.Model,
+			Prompt:   probeOpts.Prompt,
+		})
 
 		if opts.JSON {
 			return render.WriteJSON(cmd.OutOrStdout(), snap)

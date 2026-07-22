@@ -41,12 +41,12 @@ It collects host resources, GPUs, Docker, local LLM runtimes (Ollama, vLLM, SGLa
 | **Persona** | One engineer, one machine (SSH or local) |
 | **Platforms** | Linux, macOS, Windows |
 | **GPUs** | NVIDIA, AMD, Apple Silicon (degrades gracefully when absent) |
-| **Output** | CLI tables · live TUI · `--json` for scripts and agents |
+| **Output** | CLI tables · live TUI · `--json` · MCP tools for agents |
 
 Collectors are optional: missing Docker, GPU drivers, or LLM runtimes degrade gracefully. Commands still exit `0` and record a `skipped` reason.
 
 ```
-Host + GPU + Docker + LLM + DB  →  Snapshot  →  CLI / TUI / JSON
+Host + GPU + Docker + LLM + DB  →  Snapshot  →  CLI / TUI / JSON / MCP
 ```
 
 ---
@@ -75,6 +75,7 @@ bareai status                 # one-screen summary
 bareai inspect                # full correlated report
 bareai inspect --json | jq .  # machine-readable snapshot
 bareai doctor --share         # paste-friendly report for issues/chat
+bareai mcp                    # MCP server for Cursor / Claude (stdio)
 ```
 
 On a TTY, bare `bareai` launches the dashboard. In pipes/CI it prints help; `bareai watch` falls back to `status`.
@@ -94,6 +95,7 @@ On a TTY, bare `bareai` launches the dashboard. In pipes/CI it prints help; `bar
 | `probe` | One-hit smoke tests |
 | `inspect` | Full correlated report |
 | `doctor` | Ranked diagnostics (read-only hints) |
+| `mcp` | MCP server for coding agents (stdio) |
 | `config path` | Resolved config file path |
 | `version` | Build metadata |
 | `completion` | Shell completions |
@@ -117,6 +119,7 @@ Enable under **Settings → Pages**: Deploy from a branch → **main** → **/do
 | [Commands](docs/commands.md) | CLI reference |
 | [Interactive TUI](docs/tui.md) | Tabs and keybindings |
 | [JSON & snapshot](docs/json.md) | `--json` output model |
+| [Agents & MCP](docs/agents.md) | MCP tools and agent contract |
 | [Platforms](docs/platforms.md) | Linux / macOS / Windows matrix |
 | [Workflows](docs/workflows.md) | Common recipes |
 | [Development](docs/development.md) | Build, test, lint |

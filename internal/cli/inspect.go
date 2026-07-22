@@ -7,8 +7,15 @@ import (
 
 	"github.com/baselhusam/bareai-cli/internal/collect"
 	"github.com/baselhusam/bareai-cli/internal/inspect"
+	bareaimcp "github.com/baselhusam/bareai-cli/internal/mcp"
 	"github.com/baselhusam/bareai-cli/internal/render"
+	"github.com/baselhusam/bareai-cli/internal/snapshot"
 )
+
+type inspectJSONOutput struct {
+	SchemaVersion string `json:"schema_version"`
+	*snapshot.Snapshot
+}
 
 var inspectCmd = &cobra.Command{
 	Use:   "inspect",
@@ -24,7 +31,10 @@ var inspectCmd = &cobra.Command{
 		inspect.Enrich(snap)
 
 		if opts.JSON {
-			return render.WriteJSON(cmd.OutOrStdout(), snap)
+			return render.WriteJSON(cmd.OutOrStdout(), inspectJSONOutput{
+				SchemaVersion: bareaimcp.SchemaVersion,
+				Snapshot:      snap,
+			})
 		}
 		return render.WriteInspect(cmd.OutOrStdout(), snap, render.InspectOptions{
 			NoColor: opts.NoColor,
