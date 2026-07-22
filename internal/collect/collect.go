@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	dockercollect "github.com/baselhusam/bareai-cli/internal/collect/docker"
+	dbcollect "github.com/baselhusam/bareai-cli/internal/collect/db"
 	hostcollect "github.com/baselhusam/bareai-cli/internal/collect/host"
 	gpucollect "github.com/baselhusam/bareai-cli/internal/collect/gpu"
 	llmcollect "github.com/baselhusam/bareai-cli/internal/collect/llm"
@@ -16,6 +17,7 @@ type Options struct {
 	ProbeLLM     bool
 	ListModels   bool
 	FetchMetrics bool
+	ProbeDB      bool
 }
 
 // FullOptions returns options for one-shot CLI commands.
@@ -24,6 +26,7 @@ func FullOptions() Options {
 		ProbeLLM:     true,
 		ListModels:   true,
 		FetchMetrics: true,
+		ProbeDB:      true,
 	}
 }
 
@@ -33,6 +36,7 @@ func LightRefreshOptions() Options {
 		ProbeLLM:     true,
 		ListModels:   false,
 		FetchMetrics: true,
+		ProbeDB:      true,
 	}
 }
 
@@ -104,6 +108,20 @@ func SnapshotWithOptions(ctx context.Context, opts Options) *snapshot.Snapshot {
 	} else {
 		snap.LLMs = llms
 		snap.Skipped = append(snap.Skipped, llmSkips...)
+	}
+
+	dbs, dbSkips, err := dbcollect.Collect(ctx, dbcollect.Input{
+		Docker: snap.Docker,
+		Probe:  opts.ProbeDB,
+	})
+	if err != nil {
+		snap.Skipped = append(snap.Skipped, snapshot.Skip{
+			Component: "db",
+			Reason:    err.Error(),
+		})
+	} else {
+		snap.Databases = dbs
+		snap.Skipped = append(snap.Skipped, dbSkips...)
 	}
 
 	return snap

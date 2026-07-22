@@ -31,8 +31,8 @@ func overviewText(snap *snapshot.Snapshot, width int) string {
 		}
 		docker = fmt.Sprintf("%d running", running)
 	}
-	fmt.Fprintf(&b, "  Host: %s   GPUs: %d   Docker: %s   LLMs: %d\n\n",
-		host, gpuCount, docker, len(snap.LLMs))
+	fmt.Fprintf(&b, "  Host: %s   GPUs: %d   Docker: %s   LLMs: %d   DBs: %d\n\n",
+		host, gpuCount, docker, len(snap.LLMs), len(snap.Databases))
 
 	if snap.Host != nil {
 		h := snap.Host

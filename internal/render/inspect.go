@@ -111,8 +111,9 @@ func writeInspectOverview(w io.Writer, snap *snapshot.Snapshot) error {
 	}
 
 	llmCount := len(snap.LLMs)
-	if _, err := fmt.Fprintf(w, "  Host: %s   GPUs: %d   Docker: %s   LLMs: %d\n",
-		host, gpuCount, docker, llmCount); err != nil {
+	dbCount := len(snap.Databases)
+	if _, err := fmt.Fprintf(w, "  Host: %s   GPUs: %d   Docker: %s   LLMs: %d   DBs: %d\n",
+		host, gpuCount, docker, llmCount, dbCount); err != nil {
 		return err
 	}
 	return nil

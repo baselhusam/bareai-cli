@@ -15,6 +15,7 @@ const (
 	sectionHost overviewSection = iota
 	sectionGPU
 	sectionLLM
+	sectionDatabase
 	sectionCorrelation
 	sectionFindings
 	sectionSkipped
@@ -69,6 +70,11 @@ func sectionRowCount(snap *snapshot.Snapshot, sec overviewSection) int {
 			return 1
 		}
 		return len(snap.LLMs)
+	case sectionDatabase:
+		if len(snap.Databases) == 0 {
+			return 1
+		}
+		return len(snap.Databases)
 	case sectionCorrelation:
 		if len(snap.Correlations) == 0 {
 			return 1
@@ -148,6 +154,13 @@ func (f overviewFocus) diveTarget(snap *snapshot.Snapshot) (diveTarget, bool) {
 		if f.row < len(snap.LLMs) {
 			return diveTarget{tab: TabLLM, index: f.row}, true
 		}
+	case sectionDatabase:
+		if len(snap.Databases) == 0 {
+			return diveTarget{tab: TabDatabase}, true
+		}
+		if f.row < len(snap.Databases) {
+			return diveTarget{tab: TabDatabase, index: f.row}, true
+		}
 	case sectionCorrelation:
 		if len(snap.Correlations) == 0 {
 			return diveTarget{tab: TabLLM}, true
@@ -185,6 +198,7 @@ func renderDashboard(snap *snapshot.Snapshot, hist metricHistory, focus overview
 	parts = append(parts, renderHostPanel(snap, hist, focus, barW, sparkW, s))
 	parts = append(parts, renderGPUPanel(snap, hist, focus, barW, sparkW, s))
 	parts = append(parts, renderLLMPanel(snap, focus, width, s))
+	parts = append(parts, renderDatabasePanel(snap, focus, width, s))
 	parts = append(parts, renderCorrelationPanel(snap, focus, width, s))
 	if len(snap.Findings) > 0 {
 		parts = append(parts, renderFindingsPanel(snap, focus, s))
@@ -353,6 +367,50 @@ func renderLLMPanel(snap *snapshot.Snapshot, focus overviewFocus, width int, s s
 		lines = append(lines, line)
 	}
 	return wrapPanel(lines, focus.section == sectionLLM, s)
+}
+
+func renderDatabasePanel(snap *snapshot.Snapshot, focus overviewFocus, width int, s styles) string {
+	title := panelTitle(s, "Databases", sectionDatabase, focus)
+	var lines []string
+	lines = append(lines, title)
+
+	if len(snap.Databases) == 0 {
+		lines = append(lines, s.muted.Render("  none discovered"))
+		return wrapPanel(lines, focus.section == sectionDatabase, s)
+	}
+
+	addrW := 22
+	if width >= 100 {
+		addrW = 28
+	}
+	for i, db := range snap.Databases {
+		health := s.muted.Render("?")
+		if db.Health != nil {
+			label := "fail"
+			if db.Health.OK {
+				label = "ok"
+			}
+			health = s.healthStyle(db.Health.OK).Render(label)
+		}
+		name := db.Name
+		if name == "" {
+			name = db.Engine
+		}
+		version := ""
+		if db.Version != "" {
+			version = " v" + db.Version
+		}
+		line := fmt.Sprintf("%s%-10s %-14s %-*s%s %s",
+			rowPrefix(focus, sectionDatabase, i),
+			truncate(db.Engine, 10),
+			truncate(name, 14),
+			addrW, truncate(db.Address, addrW),
+			version,
+			health,
+		)
+		lines = append(lines, line)
+	}
+	return wrapPanel(lines, focus.section == sectionDatabase, s)
 }
 
 func renderCorrelationPanel(snap *snapshot.Snapshot, focus overviewFocus, width int, s styles) string {

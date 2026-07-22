@@ -52,6 +52,9 @@ func WriteStatus(w io.Writer, snap *snapshot.Snapshot, noColor bool) error {
 	if err := writeLLMSummary(w, snap.LLMs); err != nil {
 		return err
 	}
+	if err := writeDBSummary(w, snap.Databases); err != nil {
+		return err
+	}
 
 	if len(snap.Skipped) > 0 {
 		if _, err := fmt.Fprintln(w); err != nil {

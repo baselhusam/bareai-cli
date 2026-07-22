@@ -9,6 +9,7 @@ type Snapshot struct {
 	GPUs        []GPU     `json:"gpus,omitempty"`
 	Docker      *Docker   `json:"docker,omitempty"`
 	LLMs          []LLM         `json:"llms,omitempty"`
+	Databases     []Database    `json:"databases,omitempty"`
 	Correlations  []Correlation `json:"correlations,omitempty"`
 	Findings      []Finding     `json:"findings,omitempty"`
 	Skipped     []Skip    `json:"skipped,omitempty"`
@@ -149,6 +150,19 @@ type LLMModel struct {
 	ID   string `json:"id"`
 	Name string `json:"name,omitempty"`
 	Size uint64 `json:"size_bytes,omitempty"`
+}
+
+// Database describes a discovered local database instance.
+type Database struct {
+	Engine        string       `json:"engine"`
+	Name          string       `json:"name"`
+	Address       string       `json:"address"`
+	Source        string       `json:"source"`
+	PID           int          `json:"pid,omitempty"`
+	ContainerID   string       `json:"container_id,omitempty"`
+	ContainerName string       `json:"container_name,omitempty"`
+	Version       string       `json:"version,omitempty"`
+	Health        *ProbeResult `json:"health,omitempty"`
 }
 
 // ProbeResult holds the outcome of an HTTP health or smoke probe.

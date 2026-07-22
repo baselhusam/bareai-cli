@@ -28,8 +28,11 @@ const (
 	TabGPU
 	TabLLM
 	TabDocker
+	TabDatabase
 	TabProbe
 )
+
+const tabCount = 6
 
 func (t Tab) String() string {
 	switch t {
@@ -41,6 +44,8 @@ func (t Tab) String() string {
 		return "LLMs"
 	case TabDocker:
 		return "Docker"
+	case TabDatabase:
+		return "DBs"
 	case TabProbe:
 		return "Probe"
 	default:
@@ -84,10 +89,12 @@ type Model struct {
 	gpuList    list.Model
 	llmList    list.Model
 	dockerList list.Model
+	dbList     list.Model
 
 	gpuDetail    viewport.Model
 	llmDetail    viewport.Model
 	dockerDetail viewport.Model
+	dbDetail     viewport.Model
 	probeVP      viewport.Model
 
 	probeResult   *snapshot.ProbeResult
@@ -133,6 +140,7 @@ func newModel(ctx context.Context, opts Options) Model {
 		gpuList:       newList(),
 		llmList:       newList(),
 		dockerList:    newList(),
+		dbList:        newList(),
 		spinner:       s,
 		lastProbeIdx:  -1,
 		overviewFocus: overviewFocus{section: sectionHost, row: 0},
@@ -140,6 +148,7 @@ func newModel(ctx context.Context, opts Options) Model {
 		gpuDetail:     viewport.New(38, 18),
 		llmDetail:     viewport.New(38, 18),
 		dockerDetail:  viewport.New(38, 18),
+		dbDetail:      viewport.New(38, 18),
 	}
 	return m
 }
@@ -255,6 +264,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.llmList, cmd = m.llmList.Update(msg)
 		case TabDocker:
 			m.dockerList, cmd = m.dockerList.Update(msg)
+		case TabDatabase:
+			m.dbList, cmd = m.dbList.Update(msg)
 		}
 		cmds = append(cmds, cmd)
 		m.syncDetailFromSelection()
@@ -267,6 +278,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.llmDetail, cmd = m.llmDetail.Update(msg)
 		case TabDocker:
 			m.dockerDetail, cmd = m.dockerDetail.Update(msg)
+		case TabDatabase:
+			m.dbDetail, cmd = m.dbDetail.Update(msg)
 		case TabProbe:
 			m.probeVP, cmd = m.probeVP.Update(msg)
 		}
@@ -331,6 +344,14 @@ func (m *Model) handleOverviewKey(key string) bool {
 			m.jumpToTarget(target)
 		}
 		return true
+	case "5":
+		m.tab = TabDatabase
+		m.focusDetail = false
+		if m.overviewFocus.section == sectionDatabase && m.snap != nil && len(m.snap.Databases) > 0 {
+			m.selectListAt(&m.dbList, m.overviewFocus.row)
+			m.syncDetailFromSelection()
+		}
+		return true
 	}
 	return false
 }
@@ -345,6 +366,8 @@ func (m *Model) jumpToTarget(target diveTarget) {
 		m.selectListAt(&m.llmList, target.index)
 	case TabDocker:
 		m.selectListAt(&m.dockerList, target.index)
+	case TabDatabase:
+		m.selectListAt(&m.dbList, target.index)
 	}
 	m.syncDetailFromSelection()
 }
@@ -383,17 +406,21 @@ func (m *Model) handleTabKey(key string) bool {
 		m.focusDetail = false
 		return true
 	case "5":
+		m.tab = TabDatabase
+		m.focusDetail = false
+		return true
+	case "6":
 		m.tab = TabProbe
 		m.focusDetail = false
 		return true
 	case "tab":
-		m.tab = Tab((int(m.tab) + 1) % 5)
+		m.tab = Tab((int(m.tab) + 1) % tabCount)
 		m.focusDetail = false
 		return true
 	case "shift+tab":
 		n := int(m.tab) - 1
 		if n < 0 {
-			n = 4
+			n = tabCount - 1
 		}
 		m.tab = Tab(n)
 		m.focusDetail = false
@@ -409,7 +436,7 @@ func (m *Model) startRefresh() {
 
 func (m *Model) tabUsesList() bool {
 	switch m.tab {
-	case TabGPU, TabLLM, TabDocker:
+	case TabGPU, TabLLM, TabDocker, TabDatabase:
 		return true
 	default:
 		return false
@@ -453,6 +480,7 @@ func (m *Model) resizeLists() {
 	m.gpuList.SetSize(w, h)
 	m.llmList.SetSize(w, h)
 	m.dockerList.SetSize(w, h)
+	m.dbList.SetSize(w, h)
 }
 
 func (m *Model) syncViewports() {
@@ -468,6 +496,8 @@ func (m *Model) syncViewports() {
 		m.llmDetail.Height = h
 		m.dockerDetail.Width = dw
 		m.dockerDetail.Height = h
+		m.dbDetail.Width = dw
+		m.dbDetail.Height = h
 	}
 
 	if m.snap != nil {
@@ -519,6 +549,17 @@ func (m *Model) syncLists() {
 	}
 	m.dockerList.SetItems(dockerItems)
 	clampListIndex(&m.dockerList, len(dockerItems))
+
+	dbItems := make([]list.Item, 0, len(m.snap.Databases))
+	for i, db := range m.snap.Databases {
+		dbItems = append(dbItems, listItem{
+			title:  dbListTitle(db, m.styles),
+			filter: dbFilterValue(db),
+			index:  i,
+		})
+	}
+	m.dbList.SetItems(dbItems)
+	clampListIndex(&m.dbList, len(dbItems))
 }
 
 func clampListIndex(l *list.Model, n int) {
@@ -546,6 +587,9 @@ func (m *Model) syncDetailFromSelection() {
 		if idx < len(containers) {
 			m.dockerDetail.SetContent(dockerDetailText(containers[idx], m.styles))
 		}
+	}
+	if idx, ok := m.selectedDBIndex(); ok {
+		m.dbDetail.SetContent(dbDetailText(m.snap.Databases[idx], m.styles))
 	}
 }
 
@@ -583,6 +627,17 @@ func (m *Model) selectedDockerIndex() (int, bool) {
 	}
 	containers := dockerContainersForList(m.snap.Docker.Containers, m.dockerShowAll)
 	if item.index >= len(containers) {
+		return 0, false
+	}
+	return item.index, true
+}
+
+func (m *Model) selectedDBIndex() (int, bool) {
+	item, ok := m.dbList.SelectedItem().(listItem)
+	if !ok || m.snap == nil || item.index >= len(m.snap.Databases) {
+		if m.snap != nil && len(m.snap.Databases) > 0 {
+			return 0, true
+		}
 		return 0, false
 	}
 	return item.index, true
@@ -630,9 +685,9 @@ func (m Model) View() string {
 func (m Model) renderHelp() string {
 	switch m.tab {
 	case TabOverview:
-		return m.styles.muted.Render("Overview: ↑/↓ sections · enter dive · / search LLMs · 2-5 tabs · r refresh · q quit")
+		return m.styles.muted.Render("Overview: ↑/↓ sections · enter dive · / search LLMs · 2-6 tabs · r refresh · q quit")
 	default:
-		return m.styles.muted.Render("1-5 tabs · ↑/↓ j/k select · / filter · enter detail · a all containers (docker) · p probe · r refresh · q quit")
+		return m.styles.muted.Render("1-6 tabs · ↑/↓ j/k select · / filter · enter detail · a all containers (docker) · p probe · r refresh · q quit")
 	}
 }
 
@@ -656,7 +711,7 @@ func (m Model) renderHeader() string {
 }
 
 func (m Model) renderTabBar() string {
-	labels := []string{"1 Overview", "2 GPUs", "3 LLMs", "4 Docker", "5 Probe"}
+	labels := []string{"1 Overview", "2 GPUs", "3 LLMs", "4 Docker", "5 DBs", "6 Probe"}
 	parts := make([]string, len(labels))
 	for i, label := range labels {
 		if Tab(i) == m.tab {
@@ -697,6 +752,11 @@ func (m Model) renderBody() string {
 			return m.renderSplit(m.dockerList.View(), "No running containers.")
 		}
 		return m.renderSplit(m.dockerList.View(), m.dockerDetail.View())
+	case TabDatabase:
+		if len(m.snap.Databases) == 0 {
+			return m.styles.pane.Render("No database instances discovered.")
+		}
+		return m.renderSplit(m.dbList.View(), m.dbDetail.View())
 	default:
 		return ""
 	}
