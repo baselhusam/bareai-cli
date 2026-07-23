@@ -4,7 +4,7 @@ Product site (GitHub Pages): **[site/](site/)** → [baselhusam.github.io/bareai
 
 | Guide | Description |
 |-------|-------------|
-| [Install](install.md) | Install scripts, Homebrew, winget, APT, completions |
+| [Install](install.md) | Copy-paste install for every platform (script, Homebrew, winget, APT) |
 | [Configuration](configuration.md) | Config file, global flags, environment variables |
 | [Commands](commands.md) | Full CLI reference with examples |
 | [Interactive TUI](tui.md) | Dashboard layout and keyboard shortcuts |

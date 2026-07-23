@@ -53,18 +53,29 @@ Host + GPU + Docker + LLM + DB  →  Snapshot  →  CLI / TUI / JSON / MCP
 
 ## Install
 
+**macOS / Linux** — no sudo, installs to `~/.local/bin`:
+
 ```bash
-# macOS / Linux (no sudo — installs to ~/.local/bin)
 curl -fsSL https://raw.githubusercontent.com/baselhusam/bareai-cli/main/scripts/install.sh | bash
+source ~/.zshrc && bareai version
+```
 
-# Homebrew
-brew tap baselhusam/tap && brew install bareai
+**Homebrew** — trust the tap once, then install:
 
-# Windows (winget)
+```bash
+brew tap baselhusam/tap
+brew trust baselhusam/tap
+brew install bareai
+bareai version
+```
+
+**Windows:**
+
+```powershell
 winget install baselhusam.bareai
 ```
 
-More options (APT, PowerShell, completions, build from source): **[docs/install.md](docs/install.md)**
+APT, PowerShell script, manual download, completions, troubleshooting: **[docs/install.md](docs/install.md)**
 
 ---
 

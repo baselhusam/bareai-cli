@@ -67,7 +67,7 @@ release:
     irm https://raw.githubusercontent.com/baselhusam/bareai-cli/main/scripts/install.ps1 | iex
     ```
 
-    **Homebrew:** `brew tap baselhusam/tap && brew install bareai`
+    **Homebrew:** `brew tap baselhusam/tap && brew trust baselhusam/tap && brew install bareai`
 
     **Debian/Ubuntu:** See [Cloudsmith APT setup](https://github.com/baselhusam/bareai-cli/blob/main/docs/install.md#debian--ubuntu-cloudsmith-apt).
 
