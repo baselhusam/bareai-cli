@@ -27,7 +27,7 @@ How to cut a `bareai` release and publish packages.
 4. Add `CLOUDSMITH_API_KEY` to GitHub secrets
 5. Copy the setup script URL for README/docs:
    ```bash
-   curl -1sLf 'https://dl.cloudsmith.io/public/baselhusam/bareai/cfg/setup/deb.sh' | sudo bash
+   curl -1sLf 'https://dl.cloudsmith.io/public/baselhusam/bareai/setup.deb.sh' | sudo bash
    sudo apt update && sudo apt install bareai
    ```
 

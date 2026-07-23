@@ -81,7 +81,7 @@ irm https://raw.githubusercontent.com/baselhusam/bareai-cli/main/scripts/install
 ## Debian / Ubuntu (APT via Cloudsmith)
 
 ```bash
-curl -1sLf 'https://dl.cloudsmith.io/public/baselhusam/bareai/cfg/setup/deb.sh' | sudo bash
+curl -1sLf 'https://dl.cloudsmith.io/public/baselhusam/bareai/setup.deb.sh' | sudo bash
 sudo apt update && sudo apt install bareai
 bareai version
 man bareai-doctor
@@ -149,7 +149,7 @@ make build
 | `Refusing to load formula … untrusted tap` | Run `brew trust baselhusam/tap`, then `brew install bareai` |
 | `Repository not found` on `brew tap` | The tap repo is missing — use the install script instead, or check [homebrew-tap](https://github.com/baselhusam/homebrew-tap) |
 | `winget` package not found | Package may still be pending in winget-pkgs — use the PowerShell install script or a GitHub Release zip |
-| APT `bareai` not found | Cloudsmith repo not configured — run the `curl … setup/deb.sh` line first |
+| APT `bareai` not found | Cloudsmith repo not configured — run the `curl … setup.deb.sh` line first |
 
 ---
 
