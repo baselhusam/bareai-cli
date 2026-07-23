@@ -80,6 +80,8 @@ irm https://raw.githubusercontent.com/baselhusam/bareai-cli/main/scripts/install
 
 ## Debian / Ubuntu (APT via Cloudsmith)
 
+Debian/Ubuntu packages are hosted by [Cloudsmith](https://cloudsmith.com).
+
 ```bash
 curl -1sLf 'https://dl.cloudsmith.io/public/baselhusam/bareai/setup.deb.sh' | sudo bash
 sudo apt update && sudo apt install bareai

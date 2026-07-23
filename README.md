@@ -9,6 +9,9 @@
 <p align="center">
   <a href="https://github.com/baselhusam/bareai-cli/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/baselhusam/bareai-cli/ci.yml?branch=main&style=flat-square&label=CI&logo=github&logoColor=eef0e6&labelColor=0b0d08&color=8bd450" alt="CI"></a>
   <a href="https://github.com/baselhusam/bareai-cli/releases/latest"><img src="https://img.shields.io/github/v/release/baselhusam/bareai-cli?style=flat-square&logo=github&logoColor=eef0e6&labelColor=0b0d08&color=8bd450" alt="Release"></a>
+  <a href="https://github.com/baselhusam/bareai-cli/releases"><img src="https://img.shields.io/github/downloads/baselhusam/bareai-cli/total?style=flat-square&logo=github&logoColor=eef0e6&label=downloads&labelColor=0b0d08&color=8bd450" alt="Downloads"></a>
+  <a href="https://cloudsmith.io/~baselhusam/repos/bareai/packages/"><img src="https://api.cloudsmith.com/v1/badges/version/baselhusam/bareai/deb/bareai/latest/a=amd64;xc=main;d=any-distro%252Fany-version;t=binary/?render=true&show_latest=true" alt="APT @ Cloudsmith"></a>
+  <a href="https://github.com/baselhusam/homebrew-tap"><img src="https://img.shields.io/badge/Homebrew-tap-8bd450?style=flat-square&logo=homebrew&logoColor=eef0e6&labelColor=0b0d08" alt="Homebrew"></a>
   <a href="https://pkg.go.dev/github.com/baselhusam/bareai-cli"><img src="https://img.shields.io/badge/Go-1.25+-8bd450?style=flat-square&logo=go&logoColor=eef0e6&labelColor=0b0d08" alt="Go 1.25+"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-8bd450?style=flat-square&labelColor=0b0d08" alt="License: MIT"></a>
   <img src="https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Windows-5c8a2e?style=flat-square&labelColor=0b0d08" alt="Platforms">
