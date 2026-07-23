@@ -104,7 +104,7 @@ func parseAppleSizeString(s string) uint64 {
 	if s == "" {
 		return 0
 	}
-	mult := uint64(1)
+	var mult uint64
 	switch {
 	case strings.HasSuffix(s, "gb"):
 		mult = 1024 * 1024 * 1024

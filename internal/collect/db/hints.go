@@ -103,15 +103,6 @@ func matchProcessEngine(name, cmdline string) *engineHint {
 	return nil
 }
 
-func defaultPortsForEngine(engine string) []uint16 {
-	for _, h := range engineHints {
-		if h.engine == engine {
-			return h.ports
-		}
-	}
-	return nil
-}
-
 func displayName(engine string) string {
 	switch engine {
 	case EnginePostgres:

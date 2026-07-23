@@ -179,17 +179,12 @@ func matchingLLMs(snap *snapshot.Snapshot, hint string, match func(snapshot.LLM)
 			continue
 		}
 		if hint != "" && !containerMatches(hint, llm.ContainerID, llm.ContainerName) {
-			if verbNeedsEndpointOnly(hint) {
-				continue
-			}
 			continue
 		}
 		out = append(out, llm)
 	}
 	return out
 }
-
-func verbNeedsEndpointOnly(_ string) bool { return false }
 
 func llmEndpointTarget(llm snapshot.LLM) *Target {
 	return &Target{
