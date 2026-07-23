@@ -4,6 +4,16 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to upload (Cloudsmith-only mode)"
+        required: true
+        default: "v0.1.0"
+      cloudsmith_only:
+        description: "Skip GoReleaser; upload .deb files from an existing GitHub Release"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -11,6 +21,7 @@ permissions:
 jobs:
   goreleaser:
     name: GoReleaser
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && !inputs.cloudsmith_only)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -25,6 +36,8 @@ jobs:
           cache: true
 
       - name: Run GoReleaser
+        id: goreleaser
+        continue-on-error: true
         uses: goreleaser/goreleaser-action@v6
         with:
           version: "~> v2"
@@ -32,6 +45,46 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.HOMEBREW_TAP_GITHUB_TOKEN }}
+
+      - name: Upload deb packages to Cloudsmith
+        if: steps.goreleaser.outcome != 'cancelled'
+        env:
+          CLOUDSMITH_API_KEY: ${{ secrets.CLOUDSMITH_API_KEY }}
+        run: |
+          pip install cloudsmith-cli
+          shopt -s nullglob
+          debs=(dist/*.deb)
+          if [ ${#debs[@]} -eq 0 ]; then
+            echo "No .deb packages found in dist/"
+            exit 1
+          fi
+          for file in "${debs[@]}"; do
+            echo "Uploading $file"
+            cloudsmith push deb "baselhusam/bareai/any-distro/any-version" "$file" \
+              --republish --no-wait-for-sync
+          done
+
+      - name: Report GoReleaser result
+        if: steps.goreleaser.outcome == 'failure'
+        run: |
+          echo "::warning::GoReleaser failed (often already_exists on re-run). Cloudsmith upload ran if .deb files were built."
+          exit 1
+
+  cloudsmith:
+    name: Cloudsmith (existing release)
+    if: github.event_name == 'workflow_dispatch' && inputs.cloudsmith_only
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download .deb packages from GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p dist
+          gh release download "${{ inputs.tag }}" \
+            --repo "${{ github.repository }}" \
+            --pattern '*.deb' \
+            --dir dist
+          ls -la dist/
 
       - name: Upload deb packages to Cloudsmith
         env:
@@ -53,6 +106,7 @@ jobs:
   winget:
     name: winget PR
     needs: goreleaser
+    if: needs.goreleaser.result == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

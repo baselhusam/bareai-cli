@@ -91,7 +91,8 @@ Windows:
 
 | Issue | Check |
 |-------|-------|
+| GoReleaser `already_exists` on re-run | Use **Actions → Release → Run workflow** with **Cloudsmith only** + tag `v0.1.0`, or tag a new release from `main` (has `replace_existing_artifacts`) |
 | Homebrew formula not updated | `HOMEBREW_TAP_GITHUB_TOKEN` scope; tap repo exists |
-| Cloudsmith upload failed | `CLOUDSMITH_API_KEY`; repo name `baselhusam/bareai` |
+| Cloudsmith upload failed | `CLOUDSMITH_API_KEY`; repo name `baselhusam/bareai`; try **Run workflow → Cloudsmith only** |
 | winget PR failed | `WINGET_TOKEN`; fork of `winget-pkgs` |
 | Checksum verify fails in install script | Asset names match `bareai_<ver>_<os>_<arch>.tar.gz` template |
