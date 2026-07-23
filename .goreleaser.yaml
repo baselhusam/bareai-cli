@@ -53,6 +53,7 @@ release:
   github:
     owner: baselhusam
     name: bareai-cli
+  replace_existing_artifacts: true
   footer: |
     ## Install
 
