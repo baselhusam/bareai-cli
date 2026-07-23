@@ -2,14 +2,61 @@
 set -euo pipefail
 
 REPO="${REPO:-baselhusam/bareai-cli}"
-INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin}"
+INSTALL_DIR="${INSTALL_DIR:-}"
 VERSION="${VERSION:-}"
+INSTALL_SYSTEM="${INSTALL_SYSTEM:-}"
+
+usage() {
+  cat <<EOF
+Usage: install.sh [options]
+
+Install bareai from GitHub Releases. No sudo required by default.
+
+Options:
+  --dir PATH       Install directory (default: ~/.local/bin)
+  --system         Install to /usr/local/bin (may prompt for sudo)
+  --version TAG    Release tag (default: latest)
+  -h, --help       Show this help
+
+Examples:
+  curl -fsSL .../install.sh | bash
+  curl -fsSL .../install.sh | bash -s -- --version v0.1.0
+EOF
+}
 
 need_cmd() {
   command -v "$1" >/dev/null 2>&1 || {
     echo "install.sh: required command not found: $1" >&2
     exit 1
   }
+}
+
+parse_args() {
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --dir)
+        INSTALL_DIR="$2"
+        shift 2
+        ;;
+      --system)
+        INSTALL_SYSTEM=1
+        shift
+        ;;
+      --version)
+        VERSION="$2"
+        shift 2
+        ;;
+      -h | --help)
+        usage
+        exit 0
+        ;;
+      *)
+        echo "install.sh: unknown argument: $1" >&2
+        usage >&2
+        exit 1
+        ;;
+    esac
+  done
 }
 
 detect_platform() {
@@ -26,8 +73,8 @@ detect_platform() {
 
   arch="$(uname -m)"
   case "$arch" in
-    x86_64|amd64) arch="amd64" ;;
-    aarch64|arm64) arch="arm64" ;;
+    x86_64 | amd64) arch="amd64" ;;
+    aarch64 | arm64) arch="arm64" ;;
     *)
       echo "install.sh: unsupported architecture: $arch" >&2
       exit 1
@@ -35,6 +82,54 @@ detect_platform() {
   esac
 
   echo "${os} ${arch}"
+}
+
+default_install_dir() {
+  if [[ "$INSTALL_SYSTEM" == "1" ]]; then
+    echo "/usr/local/bin"
+    return
+  fi
+  echo "${HOME}/.local/bin"
+}
+
+shell_rc() {
+  case "$(basename "${SHELL:-}")" in
+    zsh) echo "${HOME}/.zshrc" ;;
+    bash) echo "${HOME}/.bashrc" ;;
+    *) echo "${HOME}/.profile" ;;
+  esac
+}
+
+ensure_path() {
+  local dir="$1"
+  if [[ ":$PATH:" == *":${dir}:"* ]]; then
+    return 0
+  fi
+
+  export PATH="${dir}:${PATH}"
+
+  local rc line marker updated=0
+  rc="$(shell_rc)"
+  line="export PATH=\"${dir}:\$PATH\""
+  marker="# bareai"
+
+  if [[ ! -f "$rc" ]]; then
+    touch "$rc"
+  fi
+
+  if ! grep -qF "$dir" "$rc" 2>/dev/null; then
+    {
+      echo ""
+      echo "$marker"
+      echo "$line"
+    } >>"$rc"
+    echo "Added ${dir} to PATH in ${rc}"
+    updated=1
+  fi
+
+  if [[ "$updated" -eq 1 ]]; then
+    echo "Restart your shell, or run: source ${rc}"
+  fi
 }
 
 latest_version() {
@@ -65,6 +160,8 @@ verify_checksum() {
 }
 
 main() {
+  parse_args "$@"
+
   need_cmd curl
   need_cmd tar
   need_cmd grep
@@ -77,6 +174,10 @@ main() {
   if [[ -z "$VERSION" ]]; then
     echo "install.sh: could not determine release version" >&2
     exit 1
+  fi
+
+  if [[ -z "$INSTALL_DIR" ]]; then
+    INSTALL_DIR="$(default_install_dir)"
   fi
 
   ver="${VERSION#v}"
@@ -96,12 +197,19 @@ main() {
     exit 1
   fi
 
+  mkdir -p "$INSTALL_DIR"
   if [[ -w "$INSTALL_DIR" ]]; then
     install -m 0755 "${tmpdir}/bareai" "${INSTALL_DIR}/bareai"
-  else
+  elif [[ "$INSTALL_SYSTEM" == "1" ]]; then
     need_cmd sudo
     sudo install -m 0755 "${tmpdir}/bareai" "${INSTALL_DIR}/bareai"
+  else
+    echo "install.sh: cannot write to ${INSTALL_DIR}" >&2
+    echo "install.sh: pick another directory with --dir PATH" >&2
+    exit 1
   fi
+
+  ensure_path "$INSTALL_DIR"
 
   echo "Installed to ${INSTALL_DIR}/bareai"
   "${INSTALL_DIR}/bareai" version

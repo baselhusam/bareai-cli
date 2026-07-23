@@ -54,7 +54,7 @@ Host + GPU + Docker + LLM + DB  →  Snapshot  →  CLI / TUI / JSON / MCP
 ## Install
 
 ```bash
-# macOS / Linux
+# macOS / Linux (no sudo — installs to ~/.local/bin)
 curl -fsSL https://raw.githubusercontent.com/baselhusam/bareai-cli/main/scripts/install.sh | bash
 
 # Homebrew

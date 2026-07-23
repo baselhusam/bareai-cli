@@ -2,11 +2,23 @@
 
 ## macOS / Linux (install script)
 
+No `sudo` required — installs to `~/.local/bin` and updates your shell `PATH`.
+
 ```bash
 curl -fsSL https://raw.githubusercontent.com/baselhusam/bareai-cli/main/scripts/install.sh | bash
 ```
 
-Pin a version: `VERSION=v0.1.0 curl -fsSL ... | bash`
+Pin a version:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/baselhusam/bareai-cli/main/scripts/install.sh | bash -s -- --version v0.1.0
+```
+
+System-wide install (`/usr/local/bin`, may prompt for password):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/baselhusam/bareai-cli/main/scripts/install.sh | bash -s -- --system
+```
 
 ## Homebrew
 
